@@ -19,30 +19,31 @@ import (
 	"time"
 )
 
+var OpenStackNetworkName = os.Getenv("OPENSTACK_NETWORK_NAME")
 
 // ZunProvider implements the virtual-kubelet provider interface and communicates with OpenStack's Zun APIs.
 type ZunProvider struct {
-	ZunClient *gophercloud.ServiceClient
-	resourceManager *manager.ResourceManager
-	region string
-	nodeName string
-	operatingSystem string
-	cpu string
-	memory string
-	pods string
+	ZunClient          *gophercloud.ServiceClient
+	resourceManager    *manager.ResourceManager
+	region             string
+	nodeName           string
+	operatingSystem    string
+	cpu                string
+	memory             string
+	pods               string
 	daemonEndpointPort int32
 }
 
 // NewZunProvider creates a new ZunProvider.
-func NewZunProvider(config string,rm *manager.ResourceManager,nodeName string,operatingSystem string,daemonEndpointPort int32)(*ZunProvider,error){
+func NewZunProvider(config string, rm *manager.ResourceManager, nodeName string, operatingSystem string, daemonEndpointPort int32) (*ZunProvider, error) {
 	var p ZunProvider
 	var err error
 
 	p.resourceManager = rm
 
-	AuthOptions,err := openstack.AuthOptionsFromEnv()
+	AuthOptions, err := openstack.AuthOptionsFromEnv()
 
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("Unable to get the Auth options from environment variables: %s", err)
 	}
 
@@ -71,17 +72,16 @@ func NewZunProvider(config string,rm *manager.ResourceManager,nodeName string,op
 }
 
 // CreatePod takes a Kubernetes Pod and deploys it within the provider.
-func (p *ZunProvider)CreatePod(ctx context.Context, pod *v1.Pod) error{
-	container,err := p.getContainer(pod)
-	if err != nil{
+func (p *ZunProvider) CreatePod(ctx context.Context, pod *v1.Pod) error {
+	container, err := p.getContainer(pod)
+	if err != nil {
 		return err
 	}
 
 	createOpts := containers.CreateOpts{
-		TemplateOpts:container,
+		TemplateOpts: container,
 	}
 	_, err = containers.Create(p.ZunClient, createOpts).Extract()
-
 
 	if err != nil {
 		return err
@@ -91,14 +91,17 @@ func (p *ZunProvider)CreatePod(ctx context.Context, pod *v1.Pod) error{
 }
 
 func (p *ZunProvider) getContainer(pod *v1.Pod) (Container, error) {
+	if OpenStackNetworkName == "" {
+		OpenStackNetworkName = "container-netword"
+	}
 	containers := make([]Container, 0, len(pod.Spec.Containers))
 	for _, container := range pod.Spec.Containers {
 		c := Container{
-			//Nets:             []network{
-			//	network{
-			//		"network":"container-netword",
-			//	},
-			//},
+			Nets: []network{
+				network{
+					"network": OpenStackNetworkName,
+				},
+			},
 			CPU:              2,
 			Memory:           2048,
 			Image:            container.Image,
@@ -144,52 +147,52 @@ func (p *ZunProvider) getContainer(pod *v1.Pod) (Container, error) {
 }
 
 // UpdatePod takes a Kubernetes Pod and updates it within the provider.
-func (p *ZunProvider) UpdatePod(ctx context.Context, pod *v1.Pod) error{
+func (p *ZunProvider) UpdatePod(ctx context.Context, pod *v1.Pod) error {
 	var err error
 	return err
 }
 
 // DeletePod takes a Kubernetes Pod and deletes it from the provider.
-func (p *ZunProvider) DeletePod(ctx context.Context, pod *v1.Pod) error{
+func (p *ZunProvider) DeletePod(ctx context.Context, pod *v1.Pod) error {
 	var err error
 	return err
 }
 
 // GetPod retrieves a pod by name from the provider (can be cached).
-func (p *ZunProvider) GetPod(ctx context.Context, namespace, name string) (*v1.Pod, error){
+func (p *ZunProvider) GetPod(ctx context.Context, namespace, name string) (*v1.Pod, error) {
 	var err error
-	return nil,err
+	return nil, err
 }
 
 // GetContainerLogs retrieves the logs of a container by name from the provider.
-func (p *ZunProvider) GetContainerLogs(ctx context.Context, namespace, podName, containerName string, tail int) (string, error){
+func (p *ZunProvider) GetContainerLogs(ctx context.Context, namespace, podName, containerName string, tail int) (string, error) {
 	var err error
-	return "",err
+	return "", err
 }
 
 // ExecInContainer executes a command in a container in the pod, copying data
 // between in/out/err and the container's stdin/stdout/stderr.
-func (p *ZunProvider) ExecInContainer(name string, uid types.UID, container string, cmd []string, in io.Reader, out, err io.WriteCloser, tty bool, resize <-chan remotecommand.TerminalSize, timeout time.Duration) error{
+func (p *ZunProvider) ExecInContainer(name string, uid types.UID, container string, cmd []string, in io.Reader, out, err io.WriteCloser, tty bool, resize <-chan remotecommand.TerminalSize, timeout time.Duration) error {
 	var e error
 	return e
 }
 
 // GetPodStatus retrieves the status of a pod by name from the provider.
-func (p *ZunProvider) GetPodStatus(ctx context.Context, namespace, name string) (*v1.PodStatus, error){
+func (p *ZunProvider) GetPodStatus(ctx context.Context, namespace, name string) (*v1.PodStatus, error) {
 	var err error
-	return nil,err
+	return nil, err
 }
 
 // GetPods retrieves a list of all pods running on the provider (can be cached).
-func (p *ZunProvider) GetPods(context.Context) ([]*v1.Pod, error){
+func (p *ZunProvider) GetPods(context.Context) ([]*v1.Pod, error) {
 	var err error
-	return nil,err
+	return nil, err
 }
 
 // Capacity returns a resource list with the capacity constraints of the provider.
-func (p *ZunProvider) Capacity(context.Context) v1.ResourceList{
+func (p *ZunProvider) Capacity(context.Context) v1.ResourceList {
 	return v1.ResourceList{
-		"cpu" : resource.MustParse(p.cpu),
+		"cpu":    resource.MustParse(p.cpu),
 		"memory": resource.MustParse(p.memory),
 		"pods":   resource.MustParse(p.pods),
 	}
@@ -197,7 +200,7 @@ func (p *ZunProvider) Capacity(context.Context) v1.ResourceList{
 
 // NodeConditions returns a list of conditions (Ready, OutOfDisk, etc), which is
 // polled periodically to update the node status within Kubernetes.
-func (p *ZunProvider) NodeConditions(context.Context) []v1.NodeCondition{
+func (p *ZunProvider) NodeConditions(context.Context) []v1.NodeCondition {
 	return []v1.NodeCondition{
 		{
 			Type:               "Ready",
@@ -244,7 +247,7 @@ func (p *ZunProvider) NodeConditions(context.Context) []v1.NodeCondition{
 
 // NodeAddresses returns a list of addresses for the node status
 // within Kubernetes.
-func (p *ZunProvider) NodeAddresses(context.Context) []v1.NodeAddress{
+func (p *ZunProvider) NodeAddresses(context.Context) []v1.NodeAddress {
 	log.Println("Received NodeAddresses request.")
 	return []v1.NodeAddress{
 		{
@@ -256,7 +259,7 @@ func (p *ZunProvider) NodeAddresses(context.Context) []v1.NodeAddress{
 
 // NodeDaemonEndpoints returns NodeDaemonEndpoints for the node status
 // within Kubernetes.
-func (p *ZunProvider) NodeDaemonEndpoints(context.Context) *v1.NodeDaemonEndpoints{
+func (p *ZunProvider) NodeDaemonEndpoints(context.Context) *v1.NodeDaemonEndpoints {
 	return &v1.NodeDaemonEndpoints{
 		KubeletEndpoint: v1.DaemonEndpoint{
 			Port: p.daemonEndpointPort,
@@ -265,8 +268,8 @@ func (p *ZunProvider) NodeDaemonEndpoints(context.Context) *v1.NodeDaemonEndpoin
 }
 
 // OperatingSystem returns the operating system the provider is for.
-func (p *ZunProvider) OperatingSystem() string{
-	if p.operatingSystem != ""{
+func (p *ZunProvider) OperatingSystem() string {
+	if p.operatingSystem != "" {
 		return p.operatingSystem
 	}
 	return providers.OperatingSystemLinux
@@ -281,7 +284,7 @@ func zunContainerStausToContainerStatus(cs *containers.Container) v1.ContainerSt
 	//'Deleted', 'Deleting', 'Rebuilding', 'Dead', 'Restarting'
 
 	// Handle the case where the container is running.
-	if cs.Status == "Running" || cs.Status == "Stopped"{
+	if cs.Status == "Running" || cs.Status == "Stopped" {
 		return v1.ContainerState{
 			Running: &v1.ContainerStateRunning{
 				StartedAt: metav1.NewTime(time.Time(time.Now())),
@@ -311,7 +314,6 @@ func zunContainerStausToContainerStatus(cs *containers.Container) v1.ContainerSt
 		},
 	}
 }
-
 
 func zunStatusToPodPhase(status string) v1.PodPhase {
 	switch status {
