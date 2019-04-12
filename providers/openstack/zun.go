@@ -18,6 +18,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -103,8 +104,6 @@ func (p *ZunProvider) CreatePod(ctx context.Context, pod *v1.Pod) error {
 		return fmt.Errorf("zun_container.Create is error : %s ", err)
 	}
 	container, err := result.Extract()
-	fmt.Println("+++++++++++++++++++++++++++++++++")
-	fmt.Println(container)
 	if err != nil {
 		return fmt.Errorf("result.Extract() is error : %s ", err)
 	}
@@ -150,7 +149,7 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 		createOpts.Workdir = container.WorkingDir
 
 		//get image pull policy
-		createOpts.ImagePullPolicy = string(container.ImagePullPolicy)
+		createOpts.ImagePullPolicy = strings.ToLower(string(container.ImagePullPolicy))
 
 		//get pod command
 		command := ""
