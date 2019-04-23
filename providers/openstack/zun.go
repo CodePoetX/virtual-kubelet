@@ -26,15 +26,16 @@ var podsDB = make(PodDB, 40)
 
 // ZunProvider implements the virtual-kubelet provider interface and communicates with OpenStack's Zun APIs.
 type ZunProvider struct {
-	ZunClient          *gophercloud.ServiceClient
-	resourceManager    *manager.ResourceManager
-	region             string
-	nodeName           string
-	operatingSystem    string
-	cpu                string
-	memory             string
-	pods               string
-	daemonEndpointPort int32
+	ZunClient              *gophercloud.ServiceClient
+	Containernetworkclient *gophercloud.ServiceClient
+	resourceManager        *manager.ResourceManager
+	region                 string
+	nodeName               string
+	operatingSystem        string
+	cpu                    string
+	memory                 string
+	pods                   string
+	daemonEndpointPort     int32
 }
 
 // NewZunProvider creates a new ZunProvider.
@@ -62,6 +63,14 @@ func NewZunProvider(config string, rm *manager.ResourceManager, nodeName string,
 
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get zun client")
+	}
+
+	p.Containernetworkclient, err = openstack.NewNetworkV2(Provider, gophercloud.EndpointOpts{
+		Region: os.Getenv("OS_REGION_NAME"),
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("Unable to get zuncontainernetwork client")
 	}
 	// Set sane defaults for Capacity in case config is not supplied
 	p.cpu = "24"
@@ -98,7 +107,6 @@ func (p *ZunProvider) CreatePod(ctx context.Context, pod *v1.Pod) error {
 	if err != nil {
 		return fmt.Errorf("CreateZunContainerOpts function is error + %s ", err)
 	}
-
 	result, err := zun_container.Create(p.ZunClient, createOpts)
 	if err != nil {
 		return fmt.Errorf("zun_container.Create is error : %s ", err)
@@ -135,6 +143,9 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 		//get pod image
 		createOpts.Image = container.Image
 
+		isInteractive := true
+		createOpts.Interactive = &isInteractive
+
 		//get pod env
 		env := make(map[string]string, len(container.Env))
 		for _, v := range container.Env {
@@ -155,12 +166,12 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 		command := ""
 		if len(container.Command) > 0 {
 			for _, v := range container.Command {
-				command = v + " "
+				command = command + v + " "
 			}
 		}
 		if len(container.Args) > 0 {
 			for _, v := range container.Args {
-				command = v + " "
+				command = command + v + " "
 			}
 		}
 		if command != "" {
@@ -168,6 +179,7 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 		}
 
 		//get pod resource
+
 		if container.Resources.Limits != nil {
 			cpuLimit := float64(1)
 			if _, ok := container.Resources.Limits[v1.ResourceCPU]; ok {
@@ -176,11 +188,24 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 
 			memoryLimit := 0.5
 			if _, ok := container.Resources.Limits[v1.ResourceMemory]; ok {
-				memoryLimit = float64(container.Resources.Limits.Memory().Value()) / 1000000000.00
+				memoryLimit = float64(container.Resources.Limits.Memory().Value()) / (1024 * 1024)
 			}
 
 			createOpts.Cpu = cpuLimit
-			createOpts.Memory = int(memoryLimit * 1024)
+			createOpts.Memory = int(memoryLimit)
+		} else if container.Resources.Requests != nil {
+			cpuRequests := float64(1)
+			if _, ok := container.Resources.Requests[v1.ResourceCPU]; ok {
+				cpuRequests = float64(container.Resources.Requests.Cpu().MilliValue()) / 1000.00
+			}
+
+			memoryRequests := 0.5
+			if _, ok := container.Resources.Requests[v1.ResourceMemory]; ok {
+				memoryRequests = float64(container.Resources.Requests.Memory().Value()) / (1024 * 1024)
+			}
+
+			createOpts.Cpu = cpuRequests
+			createOpts.Memory = int(memoryRequests)
 		}
 
 	}
