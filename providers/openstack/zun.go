@@ -27,7 +27,7 @@ var podsDB = make(PodDB, 40)
 // ZunProvider implements the virtual-kubelet provider interface and communicates with OpenStack's Zun APIs.
 type ZunProvider struct {
 	ZunClient              *gophercloud.ServiceClient
-	Containernetworkclient *gophercloud.ServiceClient
+	ContainerNetworkClient *gophercloud.ServiceClient
 	resourceManager        *manager.ResourceManager
 	region                 string
 	nodeName               string
@@ -48,13 +48,13 @@ func NewZunProvider(config string, rm *manager.ResourceManager, nodeName string,
 	AuthOptions, err := openstack.AuthOptionsFromEnv()
 
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get the Auth options from environment variables: %s", err)
+		return nil, fmt.Errorf("Unable to get the Auth options from environment variables: %s ", err)
 	}
 
 	Provider, err := openstack.AuthenticatedClient(AuthOptions)
 
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get provider: %s", err)
+		return nil, fmt.Errorf("Unable to get provider: %s ", err)
 	}
 
 	p.ZunClient, err = openstack.NewContainerV1(Provider, gophercloud.EndpointOpts{
@@ -62,15 +62,15 @@ func NewZunProvider(config string, rm *manager.ResourceManager, nodeName string,
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get zun client")
+		return nil, fmt.Errorf("Unable to get zun client ")
 	}
 
-	p.Containernetworkclient, err = openstack.NewNetworkV2(Provider, gophercloud.EndpointOpts{
+	p.ContainerNetworkClient, err = openstack.NewNetworkV2(Provider, gophercloud.EndpointOpts{
 		Region: os.Getenv("OS_REGION_NAME"),
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get zuncontainernetwork client")
+		return nil, fmt.Errorf("Unable to get zuncontainernetwork client ")
 	}
 	// Set sane defaults for Capacity in case config is not supplied
 	p.cpu = "24"
