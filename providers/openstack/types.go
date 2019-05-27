@@ -4,14 +4,6 @@ import (
 	zun_container "github.com/gophercloud/gophercloud/openstack/container/v1/container"
 )
 
-type GetPodResult struct {
-	NamespaceAndName string
-	ContainerID      string
-	Podinfo          *PodOTemplate
-}
-
-type PodDB map[string]*GetPodResult
-
 // CreateOpts represents options used to create a network.
 type PodOTemplate struct {
 	Spec     PodSpec  `json:"spec,omitempty"`
@@ -32,4 +24,16 @@ type Metadata struct {
 
 type Volume struct {
 	Name string `json:"name,omitempty"`
+}
+
+type ZunPod struct {
+	NameSpace      string
+	Name           string
+	NamespaceName  string
+	containerId    string
+	podKind        string
+	podUid         string
+	podCreatetime  string
+	podClustername string
+	nodeName       string
 }

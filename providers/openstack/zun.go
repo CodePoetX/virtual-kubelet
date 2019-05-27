@@ -22,8 +22,6 @@ import (
 	"time"
 )
 
-var podsDB = make(PodDB, 40)
-
 // ZunProvider implements the virtual-kubelet provider interface and communicates with OpenStack's Zun APIs.
 type ZunProvider struct {
 	ZunClient              *gophercloud.ServiceClient
@@ -85,24 +83,8 @@ func NewZunProvider(config string, rm *manager.ResourceManager, nodeName string,
 
 // CreatePod takes a Kubernetes Pod and deploys it within the provider.
 func (p *ZunProvider) CreatePod(ctx context.Context, pod *v1.Pod) error {
-	//pod spec info
-	var podTemplate = new(PodOTemplate)
-	podTemplate.Kind = "Zun_Pod"
 	podUID := string(pod.UID)
 	podCreationTimestamp := pod.CreationTimestamp.String()
-	var metadata Metadata
-	metadata.Labels = map[string]string{
-		"PodName":           pod.Name,
-		"ClusterName":       pod.ClusterName,
-		"NodeName":          pod.Spec.NodeName,
-		"Namespace":         pod.Namespace,
-		"UID":               podUID,
-		"CreationTimestamp": podCreationTimestamp,
-	}
-
-	// create container info
-	metadata.Name = pod.Namespace + "-" + pod.Name
-	podTemplate.Metadata = metadata
 	createOpts, err := CreateZunContainerOpts(pod)
 	if err != nil {
 		return fmt.Errorf("CreateZunContainerOpts function is error + %s ", err)
@@ -116,14 +98,21 @@ func (p *ZunProvider) CreatePod(ctx context.Context, pod *v1.Pod) error {
 		return fmt.Errorf("result.Extract() is error : %s ", err)
 	}
 	nn := fmt.Sprintf("%s-%s", pod.Namespace, pod.Name)
-	if _, ok := podsDB[nn]; !ok {
-		podsDB[nn] = &GetPodResult{
-			NamespaceAndName: nn,
-			ContainerID:      container.UUID,
-			Podinfo:          podTemplate,
-		}
+	zp := &ZunPod{
+		NameSpace:      pod.Namespace,
+		Name:           pod.Name,
+		NamespaceName:  nn,
+		containerId:    container.UUID,
+		podKind:        "Zun_Pod",
+		podUid:         podUID,
+		podCreatetime:  podCreationTimestamp,
+		podClustername: pod.ClusterName,
+		nodeName:       pod.Spec.NodeName,
 	}
-
+	err = PodCreate(zp)
+	if err != nil {
+		return fmt.Errorf("mysql op is error : %s ", err)
+	}
 	return err
 }
 
@@ -220,12 +209,12 @@ func (p *ZunProvider) UpdatePod(ctx context.Context, pod *v1.Pod) error {
 // DeletePod takes a Kubernetes Pod and deletes it from the provider.
 func (p *ZunProvider) DeletePod(ctx context.Context, pod *v1.Pod) error {
 	nn := fmt.Sprintf("%s-%s", pod.Namespace, pod.Name)
-	if v, ok := podsDB[nn]; ok {
-		err := zun_container.Delete(p.ZunClient, v.ContainerID, true).ExtractErr()
+	if v := ContainerIdQuery(nn); v != "" {
+		err := zun_container.Delete(p.ZunClient, v, true).ExtractErr()
 		if err != nil {
 			return err
 		}
-		delete(podsDB, nn)
+		PodDelete(nn)
 		return nil
 	}
 	return fmt.Errorf("Delete Pod is fail, pod is not found! ")
@@ -234,20 +223,41 @@ func (p *ZunProvider) DeletePod(ctx context.Context, pod *v1.Pod) error {
 // GetPod retrieves a pod by name from the provider (can be cached).
 func (p *ZunProvider) GetPod(ctx context.Context, namespace, name string) (*v1.Pod, error) {
 	nn := fmt.Sprintf("%s-%s", namespace, name)
-	if v, ok := podsDB[nn]; ok {
-		container, err := zun_container.Get(p.ZunClient, v.ContainerID).Extract()
+
+	if v := ContainerIdQuery(nn); v != "" {
+		container, err := zun_container.Get(p.ZunClient, v).Extract()
 		if err != nil {
 			return nil, fmt.Errorf("zun_container.Get(p.ZunClient,v.ContainerID).Extract() is error : %s ", err)
 		}
-		return containerToPod(container, v.Podinfo)
+		zunPod := PodQuery(nn)
+		podinfo := zunPodToPodinfo(zunPod)
+		return containerToPod(container, podinfo)
+	}
+	return nil, nil
+}
+
+func zunPodToPodinfo(zunPod *ZunPod) (podinfo *PodOTemplate) {
+	var podTemplate = new(PodOTemplate)
+	podTemplate.Kind = zunPod.podKind
+	var metadata Metadata
+	metadata.Labels = map[string]string{
+		"PodName":           zunPod.Name,
+		"ClusterName":       zunPod.podClustername,
+		"NodeName":          zunPod.nodeName,
+		"Namespace":         zunPod.NameSpace,
+		"UID":               zunPod.podUid,
+		"CreationTimestamp": zunPod.podCreatetime,
 	}
 
-	return nil, fmt.Errorf("get pod is fail,pod not found")
+	// create container info
+	metadata.Name = zunPod.NamespaceName
+	podTemplate.Metadata = metadata
+	return podTemplate
 }
 
 func containerToPod(c *zun_container.Container, podInfo *PodOTemplate) (pod *v1.Pod, err error) {
 	containers := make([]v1.Container, 1)
-	containerStatuses := make([]v1.ContainerStatus, 1)
+	containerStatuses := make([]v1.ContainerStatus, 0)
 	containerMemoryMB := 0
 	if c.Memory != "" {
 		containerMemory, err := strconv.Atoi(c.Memory)
@@ -273,6 +283,7 @@ func containerToPod(c *zun_container.Container, podInfo *PodOTemplate) (pod *v1.
 		},
 	}
 	containers = append(containers, container)
+
 	containerStatus := v1.ContainerStatus{
 		Name:                 c.Name,
 		State:                zunContainerStausToContainerStatus(c),
@@ -308,7 +319,7 @@ func containerToPod(c *zun_container.Container, podInfo *PodOTemplate) (pod *v1.
 		},
 		Status: v1.PodStatus{
 			Phase:             zunStatusToPodPhase(c.Status),
-			Conditions:        []v1.PodCondition{},
+			Conditions:        zunPodStateToPodConditions(c.Status, metav1.NewTime(time.Now())),
 			Message:           "",
 			Reason:            "",
 			HostIP:            "",
@@ -318,6 +329,28 @@ func containerToPod(c *zun_container.Container, podInfo *PodOTemplate) (pod *v1.
 		},
 	}
 	return &p, nil
+}
+
+func zunPodStateToPodConditions(state string, transitionTime metav1.Time) []v1.PodCondition {
+	switch state {
+	case "Running", "Created":
+		return []v1.PodCondition{
+			v1.PodCondition{
+				Type:               v1.PodReady,
+				Status:             v1.ConditionTrue,
+				LastTransitionTime: transitionTime,
+			}, v1.PodCondition{
+				Type:               v1.PodInitialized,
+				Status:             v1.ConditionTrue,
+				LastTransitionTime: transitionTime,
+			}, v1.PodCondition{
+				Type:               v1.PodScheduled,
+				Status:             v1.ConditionTrue,
+				LastTransitionTime: transitionTime,
+			},
+		}
+	}
+	return []v1.PodCondition{}
 }
 
 // GetContainerLogs retrieves the logs of a container by name from the provider.
@@ -367,10 +400,13 @@ func (p *ZunProvider) GetPods(context.Context) ([]*v1.Pod, error) {
 		for _, m := range containerList {
 			c := m
 			temp := new(PodOTemplate)
-			for _, v := range podsDB {
-				if v.ContainerID == c.UUID {
-					temp = v.Podinfo
-				}
+			//for _, v := range podsDB {
+			//	if v.ContainerID == c.UUID {
+			//		temp = v.Podinfo
+			//	}
+			//}
+			if zunPod := PodQueryByContainerId(c.UUID); zunPod != nil {
+				temp = zunPodToPodinfo(zunPod)
 			}
 			p, err := containerToPod(&c, temp)
 			if err != nil {
