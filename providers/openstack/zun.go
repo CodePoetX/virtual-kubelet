@@ -131,6 +131,7 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 
 		//get pod image
 		createOpts.Image = container.Image
+		createOpts.ImageDriver = "glance"
 
 		isInteractive := true
 		createOpts.Interactive = &isInteractive
@@ -139,6 +140,29 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 		env := make(map[string]string, len(container.Env))
 		for _, v := range container.Env {
 			env[v.Name] = v.Value
+			if v.Name == "HADOOP" {
+				tempName := pod.Name
+				clusterName := tempName[0:strings.LastIndex(tempName[0:strings.LastIndex(tempName, "-")], "-")]
+				if !isExitHadoopCluster(pod.Namespace, clusterName) {
+					if numberOfNodes, err := strconv.Atoi(v.Value); err == nil {
+						initErr := initHadoopCluster(&HadoopCluster{
+							namespace:       pod.Namespace,
+							clusterName:     clusterName,
+							numberOfNodes:   numberOfNodes,
+							availableNumber: 0,
+							createTime:      time.Now().String(),
+							hadoopSlaveId:   "",
+							hadoopMasterId:  "",
+							clusterStatus:   "InitCreating",
+						})
+						if initErr != nil {
+							fmt.Println(initErr)
+						}
+					}
+				} else {
+					continue
+				}
+			}
 		}
 		createOpts.Environment = env
 
@@ -215,6 +239,11 @@ func (p *ZunProvider) DeletePod(ctx context.Context, pod *v1.Pod) error {
 			return err
 		}
 		PodDelete(nn)
+		if pod.Namespace != "" && pod.Name != "" {
+			tempName := pod.Name
+			clusterName := tempName[0:strings.LastIndex(tempName[0:strings.LastIndex(tempName, "-")], "-")]
+			deleteHadoopCluster(pod.Namespace, clusterName)
+		}
 		return nil
 	}
 	return fmt.Errorf("Delete Pod is fail, pod is not found! ")
@@ -231,6 +260,7 @@ func (p *ZunProvider) GetPod(ctx context.Context, namespace, name string) (*v1.P
 		}
 		zunPod := PodQuery(nn)
 		podinfo := zunPodToPodinfo(zunPod)
+		p.ContainerHadoopNodeFactory(container, namespace, name)
 		return containerToPod(container, podinfo)
 	}
 	return nil, nil
