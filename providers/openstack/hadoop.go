@@ -110,6 +110,36 @@ func getHadoopMasterNodeId(namespaces, cName string) (masterId string) {
 	return
 }
 
+//func getHadoopClusterStatus(namespaces, cName string) (clusterStatus string) {
+//	db := getHadoopMysqlClient()
+//	rows, _ := db.Query(`SELECT cluster_status FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
+//	defer func() {
+//		rows.Close()
+//		db.Close()
+//	}()
+//	for rows.Next() {
+//		if err := rows.Scan(&clusterStatus); err != nil {
+//			log.Fatal(err)
+//		}
+//	}
+//	return
+//}
+
+func getHadoopNodeStatus(containerId string) (status string) {
+	db := getHadoopMysqlClient()
+	rows, _ := db.Query(`SELECT status FROM hadoop_nodes WHERE container_id=?`, containerId)
+	defer func() {
+		rows.Close()
+		db.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&status); err != nil {
+			log.Fatal(err)
+		}
+	}
+	return
+}
+
 func getHadoopSlaveNodeId(namespaces, cName string) (slaveIds []string) {
 	db := getHadoopMysqlClient()
 	rows, _ := db.Query(`SELECT hadoop_slave_id FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
@@ -182,6 +212,9 @@ func (p *ZunProvider) ContainerHadoopNodeFactory(c *zun_container.Container, nam
 	if c.Status == "Created" {
 		tempName := name
 		clusterName := tempName[0:strings.LastIndex(tempName[0:strings.LastIndex(tempName, "-")], "-")]
+		if getHadoopNodeStatus(c.UUID) == "Created" {
+			return
+		}
 		if masterId := getHadoopMasterNodeId(namespace, clusterName); masterId == "" {
 			hadoopNode := &HadoopNode{
 				namespaces:  namespace,
