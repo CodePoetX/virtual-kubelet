@@ -6,9 +6,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	zun_container "github.com/gophercloud/gophercloud/openstack/container/v1/container"
 	"log"
+	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 type hosts struct {
@@ -40,7 +42,7 @@ type HadoopNode struct {
 var mutex sync.Mutex
 
 func getHadoopMysqlClient() *sql.DB {
-	mysqlClient, err := sql.Open("mysql", "root:fudan_Nisl2019@@tcp(localhost:3306)/hadoop?charset=utf8")
+	mysqlClient, err := sql.Open("mysql", "root:fudan_Nisl2019@@tcp(10.10.87.62:3306)/hadoop?charset=utf8")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -94,7 +96,19 @@ func deleteHadoopCluster(namespaces, cName string) {
 	res, _ := stmt.Exec(namespaces, cName)
 	_, _ = res.RowsAffected()
 }
-
+func deleteHadoopmaster(namespaces, cName string) {
+	db := getHadoopMysqlClient()
+	stmt, _ := db.Prepare(`DELETE FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`)
+	defer func() {
+		stmt.Close()
+		db.Close()
+	}()
+	if !isExitHadoopCluster(namespaces, cName) {
+		return
+	}
+	res, _ := stmt.Exec(namespaces, cName)
+	_, _ = res.RowsAffected()
+}
 func getHadoopMasterNodeId(namespaces, cName string) (masterId string) {
 	db := getHadoopMysqlClient()
 	rows, _ := db.Query(`SELECT hadoop_master_id FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
@@ -249,15 +263,19 @@ func (p *ZunProvider) ContainerHadoopNodeFactory(c *zun_container.Container, nam
 			clusterName := tempName[0:strings.LastIndex(tempName[0:strings.LastIndex(tempName, "-")], "-")]
 			updateHadoopNodeStatusToRunning(c.UUID)
 			updatehadoopClusterAvailableNumber(namespace, clusterName)
-			if getNumberOfNodesbyNnameCname(namespace, clusterName) == getHadoopClusterAvailableNumber(namespace, clusterName) {
+			numberOfNode := getNumberOfNodesbyNnameCname(namespace, clusterName)
+			AvailableNumber := getHadoopClusterAvailableNumber(namespace, clusterName)
+			if numberOfNode == AvailableNumber {
 				updatehadoopClusterCreateStatus(namespace, clusterName, "Creating")
-				p.ConfigAndStartContainerHadoopCluster(namespace, clusterName)
+				p.ConfigAndStartContainerHadoopCluster(namespace, clusterName, c.UUID)
+			} else if numberOfNode < AvailableNumber {
+				p.addnodetocluster(namespace, clusterName, c.UUID)
 			}
 		}
 	}
 }
 
-func (p *ZunProvider) ConfigAndStartContainerHadoopCluster(namespace, cName string) {
+func (p *ZunProvider) ConfigAndStartContainerHadoopCluster(namespace, cName, container_id string) {
 	hadoopMasterId := getHadoopMasterNodeId(namespace, cName)
 	hadoopSlaveIdList := getHadoopSlaveNodeId(namespace, cName)
 	HostsStr, slavesStr := getFinallyHostsConfigAndSlavesConfig(namespace, cName)
@@ -265,9 +283,7 @@ func (p *ZunProvider) ConfigAndStartContainerHadoopCluster(namespace, cName stri
 	for _, v := range hadoopSlaveIdList {
 		p.WriteHadoopConfigFile(v, HostsStr, slavesStr)
 	}
-
 	p.StartContainerHadoopCluster(hadoopMasterId)
-	fmt.Println("Hadoop Cluster created is success")
 	updatehadoopClusterCreateStatus(namespace, cName, "Running")
 }
 
@@ -295,8 +311,34 @@ func (p *ZunProvider) StartContainerHadoopCluster(containerId string) {
 	//if err != nil {
 	//	fmt.Printf("executeErr is %v\n", err)
 	//}
+	fmt.Println("Hadoop Cluster created is success")
 }
 
+func (p *ZunProvider) addnodetocluster(namespace, cName, containerId string) {
+	// Add numberOfNode
+	updatehadoopClusterNumberofnodes(namespace, cName)
+	hadoopMasterId := getHadoopMasterNodeId(namespace, cName)
+	hadoopSlaveIdList := getHadoopSlaveNodeId(namespace, cName)
+	HostsStr, slavesStr := getFinallyHostsConfigAndSlavesConfig(namespace, cName)
+	p.WriteHadoopConfigFile(hadoopMasterId, HostsStr, slavesStr)
+	for _, v := range hadoopSlaveIdList {
+		p.WriteHadoopConfigFile(v, HostsStr, slavesStr)
+	}
+
+	startDatanodeCommand := zun_container.ExcuteOpts{
+		Command:     fmt.Sprint("/usr/local/hadoop/sbin/hadoop-daemon.sh start datanode"),
+		Run:         true,
+		Interacitve: false,
+	}
+	startDatanodeResult, extractDatanodeErr := zun_container.Exexcute(p.ZunClient, containerId, startDatanodeCommand).Extract()
+	if extractDatanodeErr != nil {
+		fmt.Printf("extractDatanode err is %s", extractDatanodeErr)
+	}
+	if startDatanodeResult.ExitCode != 0 {
+		fmt.Printf("startDatanode err is %s", startDatanodeResult.Output)
+	}
+	fmt.Println("add node to cluster success")
+}
 func getFinallyHostsConfigAndSlavesConfig(namespace, clusterName string) (hostsStr, slaveStr string) {
 	hadoopMasterId := getHadoopMasterNodeId(namespace, clusterName)
 	masterHost := getHadoopHosts(hadoopMasterId)
@@ -312,8 +354,29 @@ func getFinallyHostsConfigAndSlavesConfig(namespace, clusterName string) (hostsS
 	}
 	return
 }
-
 func (p *ZunProvider) WriteHadoopConfigFile(containerId, HostsStr, slavesStr string) {
+	nodestatus := getHadoopNodeStatus(containerId)
+	if nodestatus != "Running" {
+		return
+	}
+	HostsStr = "\"" + HostsStr + "\""
+	slavesStr = "\"" + slavesStr + "\""
+	hosts_slave := fmt.Sprintf("sh /root/modify.sh %s %s", HostsStr, slavesStr)
+	modifyCommand := zun_container.ExcuteOpts{
+		Command:     hosts_slave,
+		Run:         true,
+		Interacitve: false,
+	}
+	excuteResult, err := zun_container.Exexcute(p.ZunClient, containerId, modifyCommand).Extract()
+	if err != nil {
+		fmt.Printf("Extract modifyResult err:%s", err)
+	}
+	if excuteResult.ExitCode != 0 {
+		fmt.Printf("excute modify hosts and slave err: %s", excuteResult.Output)
+	}
+
+}
+func (p *ZunProvider) WriteHadoopConfigFile2(containerId, HostsStr, slavesStr string) {
 	cpStr := fmt.Sprintf("cp /etc/hosts /etc/hosts.temp")
 	cpCommand := zun_container.ExcuteOpts{
 		//Command:"cat << EOF >   /etc/hosts  \n [global] \n EOF",
@@ -323,7 +386,7 @@ func (p *ZunProvider) WriteHadoopConfigFile(containerId, HostsStr, slavesStr str
 	}
 	_, err := zun_container.Exexcute(p.ZunClient, containerId, cpCommand).Extract()
 	if err != nil {
-		fmt.Printf("executeErr is %v\n", err)
+		fmt.Printf("copy hosts.temp err is %v\n", err)
 	}
 
 	wHostsStr := fmt.Sprintf("sed -i '$ a %s' /etc/hosts.temp", HostsStr)
@@ -335,7 +398,7 @@ func (p *ZunProvider) WriteHadoopConfigFile(containerId, HostsStr, slavesStr str
 	}
 	_, err = zun_container.Exexcute(p.ZunClient, containerId, wHostsCommand).Extract()
 	if err != nil {
-		fmt.Printf("executeErr is %v\n", err)
+		fmt.Printf("Write HostsStr Err is %v\n", err)
 	}
 
 	finCpStr := fmt.Sprintf("cp /etc/hosts.temp /etc/hosts")
@@ -347,7 +410,7 @@ func (p *ZunProvider) WriteHadoopConfigFile(containerId, HostsStr, slavesStr str
 	}
 	_, err = zun_container.Exexcute(p.ZunClient, containerId, finCpCommand).Extract()
 	if err != nil {
-		fmt.Printf("executeErr is %v\n", err)
+		fmt.Printf("Write Hosts Err is %v\n", err)
 	}
 
 	wSlavesStr := fmt.Sprintf("sed -i '$ a %s' /usr/local/hadoop/etc/hadoop/slaves", slavesStr)
@@ -359,7 +422,7 @@ func (p *ZunProvider) WriteHadoopConfigFile(containerId, HostsStr, slavesStr str
 	}
 	_, err = zun_container.Exexcute(p.ZunClient, containerId, wSlavesCommand).Extract()
 	if err != nil {
-		fmt.Printf("executeErr is %v\n", err)
+		fmt.Printf("Write slaves Err is %v\n", err)
 	}
 	dSlaves1dStr := fmt.Sprintf("sed -i '1d' /usr/local/hadoop/etc/hadoop/slaves")
 	dSlaves1dCommand := zun_container.ExcuteOpts{
@@ -448,6 +511,15 @@ func updatehadoopClusterAvailableNumber(namespaces, name string) {
 	_, err = stmt.Exec(avaNumber, namespaces, name)
 }
 
+func updatehadoopClusterNumberofnodes(namespaces, name string) {
+	db := getHadoopMysqlClient()
+	stmt, err := db.Prepare("UPDATE hadoop_cluster SET number_of_nodes = number_of_nodes + 1 WHERE namespace=? AND cluster_name=?")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = stmt.Exec(namespaces, name)
+}
+
 func getHadoopClusterAvailableNumber(namespaces, cName string) (avaNumber int) {
 	db := getHadoopMysqlClient()
 	rows, _ := db.Query(`SELECT available_number FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
@@ -530,4 +602,96 @@ func getHadoopHosts(containerId string) *hosts {
 		containerId: cid,
 	}
 	return h
+}
+func getHadoopclusterStatus(namespaces, cName string) (clusterstatus string) {
+	db := getHadoopMysqlClient()
+	rows, _ := db.Query(`SELECT cluster_status FROM hadoop_cluster WHERE namespace=? AND cluster_name =?`, namespaces, cName)
+	defer func() {
+		rows.Close()
+		db.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&clusterstatus); err != nil {
+			log.Fatal(err)
+		}
+	}
+	return
+}
+
+func isMasterNode(containerId string) bool {
+	db := getHadoopMysqlClient()
+	rows, _ := db.Query(`SELECT node_type FROM hadoop_nodes WHERE container_id = ?`, containerId)
+	defer func() {
+		rows.Close()
+		db.Close()
+	}()
+	var node_type string
+	for rows.Next() {
+		if err := rows.Scan(&node_type); err != nil {
+			log.Fatal(err)
+		}
+	}
+	if node_type == "hadoop-master" {
+		return true
+	} else {
+		return false
+	}
+	fmt.Println("isMasterNode func err")
+	return false
+}
+
+func getanotherpod(namespaces, cName string) string {
+	db := getHadoopMysqlClient()
+	rows, _ := db.Query(`SELECT hadoop_slave_id FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
+	var slaveIdstr string
+	for rows.Next() {
+		if err := rows.Scan(&slaveIdstr); err != nil {
+			log.Fatal(err)
+		}
+	}
+	if slaveIdstr != "" {
+		slaveIds := strings.Split(slaveIdstr, "@-@")
+
+		// random choose a slave
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		return slaveIds[r.Intn(len(slaveIds))]
+	} else {
+		return "no slaves"
+	}
+}
+
+func updatehadoopinfo(namespaces, cName, containerId string) {
+	slaveList := getHadoopSlaveNodeId(namespaces, cName)
+	var slaveIds string
+	if len(slaveList) == 1 {
+		slaveIds = ""
+	} else if len(slaveList) > 1 {
+		for _, v := range slaveList {
+			if v != containerId {
+				slaveIds = fmt.Sprintf("%s@-@%s", slaveIds, v)
+			}
+		}
+	}
+	slaveIds = slaveIds[3:]
+	db := getHadoopMysqlClient()
+
+	var avaNumber, number_of_nodes int
+	rows, _ := db.Query(`SELECT available_number,number_of_nodes FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
+	defer func() {
+		rows.Close()
+		db.Close()
+	}()
+	for rows.Next() {
+		if err := rows.Scan(&avaNumber, &number_of_nodes); err != nil {
+			log.Fatal(err)
+		}
+	}
+	avaNumber = avaNumber - 1
+	number_of_nodes = number_of_nodes - 1
+	stmt, err := db.Prepare("UPDATE hadoop_cluster SET hadoop_slave_id = ?, available_number = ?, number_of_nodes = ? WHERE namespace=? AND cluster_name=?")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = stmt.Exec(slaveIds, avaNumber, number_of_nodes, namespaces, cName)
+
 }
