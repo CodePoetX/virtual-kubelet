@@ -131,7 +131,6 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 
 		//get pod image
 		createOpts.Image = container.Image
-		createOpts.ImageDriver = "glance"
 
 		isInteractive := true
 		createOpts.Interactive = &isInteractive
@@ -139,6 +138,7 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 		//get pod env
 		env := make(map[string]string, len(container.Env))
 		for _, v := range container.Env {
+			createOpts.ImageDriver = "glance"
 			env[v.Name] = v.Value
 			if v.Name == "HADOOP" {
 				tempName := pod.Name
