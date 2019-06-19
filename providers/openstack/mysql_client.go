@@ -8,7 +8,7 @@ import (
 )
 
 func getMysqlClient() *sql.DB {
-	mysqlClient, err := sql.Open("mysql", "root:fudan_Nisl2019@@tcp(localhost:3306)/virtual_kubelet?charset=utf8")
+	mysqlClient, err := sql.Open("mysql", "root:fudan_Nisl2019@@tcp(10.10.87.62:3306)/virtual_kubelet?charset=utf8")
 	if err != nil {
 		log.Fatal(err)
 	}

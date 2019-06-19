@@ -260,7 +260,9 @@ func (p *ZunProvider) GetPod(ctx context.Context, namespace, name string) (*v1.P
 		}
 		zunPod := PodQuery(nn)
 		podinfo := zunPodToPodinfo(zunPod)
-		p.ContainerHadoopNodeFactory(container, namespace, name)
+		if _, ok := container.Environment["HADOOP"]; ok {
+			p.ContainerHadoopNodeFactory(container, namespace, name)
+		}
 		return containerToPod(container, podinfo)
 	}
 	return nil, nil

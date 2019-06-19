@@ -41,6 +41,18 @@ type HadoopNode struct {
 
 var mutex sync.Mutex
 
+var dbHadoop *sql.DB
+
+func connectDBHadoop() {
+	var err error
+	dbHadoop, err = sql.Open("mysql", "root:fudan_Nisl2019@@tcp(10.10.87.62:3306)/hadoop?charset=utf8")
+	if err != nil {
+		log.Fatal(err)
+	}
+	dbHadoop.SetMaxOpenConns(100)
+	dbHadoop.SetMaxIdleConns(50)
+	dbHadoop.Ping()
+}
 func getHadoopMysqlClient() *sql.DB {
 	mysqlClient, err := sql.Open("mysql", "root:fudan_Nisl2019@@tcp(10.10.87.62:3306)/hadoop?charset=utf8")
 	if err != nil {
@@ -55,15 +67,17 @@ func getHadoopMysqlClient() *sql.DB {
 
 func initHadoopCluster(cluster *HadoopCluster) error {
 	mutex.Lock()
-	db := getHadoopMysqlClient()
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
 	defer func() {
-		db.Close()
+
 		mutex.Unlock()
 	}()
 	if isExitHadoopCluster(cluster.namespace, cluster.clusterName) {
 		return nil
 	}
-	_, err := db.Exec(
+	_, err := dbHadoop.Exec(
 		"INSERT INTO hadoop_cluster (cluster_name,number_of_nodes,available_number,create_time,hadoop_master_id,hadoop_slave_id,cluster_status,namespace) VALUES (?, ?, ? , ?, ?, ?, ?, ?)",
 		cluster.clusterName,
 		cluster.numberOfNodes,
@@ -84,11 +98,13 @@ func initHadoopCluster(cluster *HadoopCluster) error {
 //delete pod by namespaces-name
 func deleteHadoopCluster(namespaces, cName string) {
 	deleteHadoopNodes(namespaces, cName)
-	db := getHadoopMysqlClient()
-	stmt, _ := db.Prepare(`DELETE FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	stmt, _ := dbHadoop.Prepare(`DELETE FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`)
 	defer func() {
 		stmt.Close()
-		db.Close()
+
 	}()
 	if !isExitHadoopCluster(namespaces, cName) {
 		return
@@ -97,11 +113,13 @@ func deleteHadoopCluster(namespaces, cName string) {
 	_, _ = res.RowsAffected()
 }
 func deleteHadoopmaster(namespaces, cName string) {
-	db := getHadoopMysqlClient()
-	stmt, _ := db.Prepare(`DELETE FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	stmt, _ := dbHadoop.Prepare(`DELETE FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`)
 	defer func() {
 		stmt.Close()
-		db.Close()
+
 	}()
 	if !isExitHadoopCluster(namespaces, cName) {
 		return
@@ -110,11 +128,13 @@ func deleteHadoopmaster(namespaces, cName string) {
 	_, _ = res.RowsAffected()
 }
 func getHadoopMasterNodeId(namespaces, cName string) (masterId string) {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT hadoop_master_id FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT hadoop_master_id FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	for rows.Next() {
 		if err := rows.Scan(&masterId); err != nil {
@@ -125,11 +145,13 @@ func getHadoopMasterNodeId(namespaces, cName string) (masterId string) {
 }
 
 //func getHadoopClusterStatus(namespaces, cName string) (clusterStatus string) {
-//	db := getHadoopMysqlClient()
-//	rows, _ := db.Query(`SELECT cluster_status FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
+//	if dbHadoop == nil {
+//connectDBHadoop()
+//}
+//	rows, _ := dbHadoop.Query(`SELECT cluster_status FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
 //	defer func() {
 //		rows.Close()
-//		db.Close()
+//
 //	}()
 //	for rows.Next() {
 //		if err := rows.Scan(&clusterStatus); err != nil {
@@ -140,11 +162,13 @@ func getHadoopMasterNodeId(namespaces, cName string) (masterId string) {
 //}
 
 func getHadoopNodeStatus(containerId string) (status string) {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT status FROM hadoop_nodes WHERE container_id=?`, containerId)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT status FROM hadoop_nodes WHERE container_id=?`, containerId)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	for rows.Next() {
 		if err := rows.Scan(&status); err != nil {
@@ -155,11 +179,13 @@ func getHadoopNodeStatus(containerId string) (status string) {
 }
 
 func getHadoopSlaveNodeId(namespaces, cName string) (slaveIds []string) {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT hadoop_slave_id FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT hadoop_slave_id FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	var slaves string
 	for rows.Next() {
@@ -185,22 +211,26 @@ func deleteHadoopNodes(namespaces, cName string) {
 }
 
 func deleteHadoopNodeByContainerId(containerId string) {
-	db := getHadoopMysqlClient()
-	stmt, _ := db.Prepare(`DELETE FROM hadoop_nodes WHERE container_id=?`)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	stmt, _ := dbHadoop.Prepare(`DELETE FROM hadoop_nodes WHERE container_id=?`)
 	defer func() {
 		stmt.Close()
-		db.Close()
+
 	}()
 	res, _ := stmt.Exec(containerId)
 	_, _ = res.RowsAffected()
 }
 
 func getNumberOfNodesbyNnameCname(namespaces, cName string) (numberOfNodes int) {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT number_of_nodes FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT number_of_nodes FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	for rows.Next() {
 		if err := rows.Scan(&numberOfNodes); err != nil {
@@ -211,11 +241,13 @@ func getNumberOfNodesbyNnameCname(namespaces, cName string) (numberOfNodes int) 
 }
 
 func isExitHadoopCluster(namespaces, cName string) (flag bool) {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT number_of_nodes FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT number_of_nodes FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	return rows.Next()
 }
@@ -438,14 +470,16 @@ func (p *ZunProvider) WriteHadoopConfigFile2(containerId, HostsStr, slavesStr st
 }
 
 func addHadoopNode(node *HadoopNode) error {
-	db := getHadoopMysqlClient()
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
 	defer func() {
-		db.Close()
+
 	}()
 	if isExitHadoopNode(node.containerId) {
 		return nil
 	}
-	_, err := db.Exec(
+	_, err := dbHadoop.Exec(
 		"INSERT INTO hadoop_nodes (namespaces,name,node_type,container_id,ip,status) VALUES (?, ?, ? , ?, ?, ?)",
 		node.namespaces,
 		node.name,
@@ -462,21 +496,25 @@ func addHadoopNode(node *HadoopNode) error {
 }
 
 func isExitHadoopNode(containerId string) (flag bool) {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT container_id FROM hadoop_nodes WHERE container_id=?`, containerId)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT container_id FROM hadoop_nodes WHERE container_id=?`, containerId)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	return rows.Next()
 }
 
 func isRunningHadoopNode(containerId string) (flag bool) {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT status FROM hadoop_nodes WHERE container_id=?`, containerId)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT status FROM hadoop_nodes WHERE container_id=?`, containerId)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	var status string
 	for rows.Next() {
@@ -491,8 +529,10 @@ func isRunningHadoopNode(containerId string) (flag bool) {
 }
 
 func updateHadoopNodeStatusToRunning(containerId string) {
-	db := getHadoopMysqlClient()
-	stmt, err := db.Prepare("UPDATE hadoop_nodes SET status = ? WHERE container_id=?")
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	stmt, err := dbHadoop.Prepare("UPDATE hadoop_nodes SET status = ? WHERE container_id=?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -503,8 +543,10 @@ func updateHadoopNodeStatusToRunning(containerId string) {
 func updatehadoopClusterAvailableNumber(namespaces, name string) {
 	avaNumber := getHadoopClusterAvailableNumber(namespaces, name)
 	avaNumber += 1
-	db := getHadoopMysqlClient()
-	stmt, err := db.Prepare("UPDATE hadoop_cluster SET available_number = ? WHERE namespace=? AND cluster_name=?")
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	stmt, err := dbHadoop.Prepare("UPDATE hadoop_cluster SET available_number = ? WHERE namespace=? AND cluster_name=?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -512,8 +554,10 @@ func updatehadoopClusterAvailableNumber(namespaces, name string) {
 }
 
 func updatehadoopClusterNumberofnodes(namespaces, name string) {
-	db := getHadoopMysqlClient()
-	stmt, err := db.Prepare("UPDATE hadoop_cluster SET number_of_nodes = number_of_nodes + 1 WHERE namespace=? AND cluster_name=?")
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	stmt, err := dbHadoop.Prepare("UPDATE hadoop_cluster SET number_of_nodes = number_of_nodes + 1 WHERE namespace=? AND cluster_name=?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -521,11 +565,13 @@ func updatehadoopClusterNumberofnodes(namespaces, name string) {
 }
 
 func getHadoopClusterAvailableNumber(namespaces, cName string) (avaNumber int) {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT available_number FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT available_number FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	for rows.Next() {
 		if err := rows.Scan(&avaNumber); err != nil {
@@ -536,8 +582,10 @@ func getHadoopClusterAvailableNumber(namespaces, cName string) (avaNumber int) {
 }
 
 func updateHadoopClusterMasterId(masterId, namespaces, name string) {
-	db := getHadoopMysqlClient()
-	stmt, err := db.Prepare("UPDATE hadoop_cluster SET hadoop_master_id = ? WHERE namespace=? AND cluster_name=?")
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	stmt, err := dbHadoop.Prepare("UPDATE hadoop_cluster SET hadoop_master_id = ? WHERE namespace=? AND cluster_name=?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -556,8 +604,10 @@ func updateHadoopClusterSlaveIds(slaveIds, namespaces, name string) {
 		}
 	}
 
-	db := getHadoopMysqlClient()
-	stmt, err := db.Prepare("UPDATE hadoop_cluster SET hadoop_slave_id = ? WHERE namespace=? AND cluster_name=?")
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	stmt, err := dbHadoop.Prepare("UPDATE hadoop_cluster SET hadoop_slave_id = ? WHERE namespace=? AND cluster_name=?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -565,8 +615,10 @@ func updateHadoopClusterSlaveIds(slaveIds, namespaces, name string) {
 }
 
 func updatehadoopClusterCreateStatus(namespaces, name, status string) {
-	db := getHadoopMysqlClient()
-	stmt, err := db.Prepare("UPDATE hadoop_cluster SET cluster_status = ? WHERE namespace=? AND cluster_name=?")
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	stmt, err := dbHadoop.Prepare("UPDATE hadoop_cluster SET cluster_status = ? WHERE namespace=? AND cluster_name=?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -583,11 +635,13 @@ func updatehadoopClusterCreateStatus(namespaces, name, status string) {
 }
 
 func getHadoopHosts(containerId string) *hosts {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT ip,container_id FROM hadoop_nodes WHERE container_id=?`, containerId)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT ip,container_id FROM hadoop_nodes WHERE container_id=?`, containerId)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	var ip, cid string
 	for rows.Next() {
@@ -604,11 +658,13 @@ func getHadoopHosts(containerId string) *hosts {
 	return h
 }
 func getHadoopclusterStatus(namespaces, cName string) (clusterstatus string) {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT cluster_status FROM hadoop_cluster WHERE namespace=? AND cluster_name =?`, namespaces, cName)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT cluster_status FROM hadoop_cluster WHERE namespace=? AND cluster_name =?`, namespaces, cName)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	for rows.Next() {
 		if err := rows.Scan(&clusterstatus); err != nil {
@@ -619,11 +675,13 @@ func getHadoopclusterStatus(namespaces, cName string) (clusterstatus string) {
 }
 
 func isMasterNode(containerId string) bool {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT node_type FROM hadoop_nodes WHERE container_id = ?`, containerId)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT node_type FROM hadoop_nodes WHERE container_id = ?`, containerId)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	var node_type string
 	for rows.Next() {
@@ -641,8 +699,10 @@ func isMasterNode(containerId string) bool {
 }
 
 func getanotherpod(namespaces, cName string) string {
-	db := getHadoopMysqlClient()
-	rows, _ := db.Query(`SELECT hadoop_slave_id FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
+	rows, _ := dbHadoop.Query(`SELECT hadoop_slave_id FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
 	var slaveIdstr string
 	for rows.Next() {
 		if err := rows.Scan(&slaveIdstr); err != nil {
@@ -673,13 +733,15 @@ func updatehadoopinfo(namespaces, cName, containerId string) {
 		}
 	}
 	slaveIds = slaveIds[3:]
-	db := getHadoopMysqlClient()
+	if dbHadoop == nil {
+		connectDBHadoop()
+	}
 
 	var avaNumber, number_of_nodes int
-	rows, _ := db.Query(`SELECT available_number,number_of_nodes FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
+	rows, _ := dbHadoop.Query(`SELECT available_number,number_of_nodes FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
 	defer func() {
 		rows.Close()
-		db.Close()
+
 	}()
 	for rows.Next() {
 		if err := rows.Scan(&avaNumber, &number_of_nodes); err != nil {
@@ -688,7 +750,7 @@ func updatehadoopinfo(namespaces, cName, containerId string) {
 	}
 	avaNumber = avaNumber - 1
 	number_of_nodes = number_of_nodes - 1
-	stmt, err := db.Prepare("UPDATE hadoop_cluster SET hadoop_slave_id = ?, available_number = ?, number_of_nodes = ? WHERE namespace=? AND cluster_name=?")
+	stmt, err := dbHadoop.Prepare("UPDATE hadoop_cluster SET hadoop_slave_id = ?, available_number = ?, number_of_nodes = ? WHERE namespace=? AND cluster_name=?")
 	if err != nil {
 		log.Fatal(err)
 	}
