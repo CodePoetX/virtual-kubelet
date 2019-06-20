@@ -6,11 +6,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	zun_container "github.com/gophercloud/gophercloud/openstack/container/v1/container"
 	"log"
-	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
 type hosts struct {
@@ -112,21 +110,7 @@ func deleteHadoopCluster(namespaces, cName string) {
 	res, _ := stmt.Exec(namespaces, cName)
 	_, _ = res.RowsAffected()
 }
-func deleteHadoopmaster(namespaces, cName string) {
-	if dbHadoop == nil {
-		connectDBHadoop()
-	}
-	stmt, _ := dbHadoop.Prepare(`DELETE FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`)
-	defer func() {
-		stmt.Close()
 
-	}()
-	if !isExitHadoopCluster(namespaces, cName) {
-		return
-	}
-	res, _ := stmt.Exec(namespaces, cName)
-	_, _ = res.RowsAffected()
-}
 func getHadoopMasterNodeId(namespaces, cName string) (masterId string) {
 	if dbHadoop == nil {
 		connectDBHadoop()
@@ -258,10 +242,11 @@ func (p *ZunProvider) ContainerHadoopNodeFactory(c *zun_container.Container, nam
 	if c.Status == "Created" {
 		tempName := name
 		clusterName := tempName[0:strings.LastIndex(tempName[0:strings.LastIndex(tempName, "-")], "-")]
+		clusterName = clusterName[0:strings.LastIndex(clusterName, "-")]
 		if getHadoopNodeStatus(c.UUID) == "Created" {
 			return
 		}
-		if masterId := getHadoopMasterNodeId(namespace, clusterName); masterId == "" {
+		if masterId := getHadoopMasterNodeId(namespace, clusterName); masterId == "" && strings.Index(name, "master") != -1 {
 			hadoopNode := &HadoopNode{
 				namespaces:  namespace,
 				name:        name,
@@ -293,6 +278,7 @@ func (p *ZunProvider) ContainerHadoopNodeFactory(c *zun_container.Container, nam
 		} else {
 			tempName := name
 			clusterName := tempName[0:strings.LastIndex(tempName[0:strings.LastIndex(tempName, "-")], "-")]
+			clusterName = clusterName[0:strings.LastIndex(clusterName, "-")]
 			updateHadoopNodeStatusToRunning(c.UUID)
 			updatehadoopClusterAvailableNumber(namespace, clusterName)
 			numberOfNode := getNumberOfNodesbyNnameCname(namespace, clusterName)
@@ -698,62 +684,52 @@ func isMasterNode(containerId string) bool {
 	return false
 }
 
-func getanotherpod(namespaces, cName string) string {
+func deletehadoopNode(namespaces, cName, containerId string) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	if dbHadoop == nil {
 		connectDBHadoop()
 	}
-	rows, _ := dbHadoop.Query(`SELECT hadoop_slave_id FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
-	var slaveIdstr string
-	for rows.Next() {
-		if err := rows.Scan(&slaveIdstr); err != nil {
-			log.Fatal(err)
-		}
-	}
-	if slaveIdstr != "" {
-		slaveIds := strings.Split(slaveIdstr, "@-@")
+	ismaster := isMasterNode(containerId)
 
-		// random choose a slave
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		return slaveIds[r.Intn(len(slaveIds))]
+	// delete hadoop_node info in hadoop_nodes table
+	stmtdeletenode, deletenodeerr := dbHadoop.Prepare("DELETE FROM hadoop_nodes WHERE container_id=?")
+	if deletenodeerr != nil {
+		log.Fatal(deletenodeerr)
+	}
+	_, stmtexecerr := stmtdeletenode.Exec(containerId)
+	if stmtexecerr != nil {
+		log.Fatal(stmtexecerr)
+	}
+
+	// if master node, delete cluster info in hadoop_cluster table
+	if ismaster {
+		stmtdeletemaster, deletemastererr := dbHadoop.Prepare("DELETE FROM hadoop_cluster WHERE namespace=? AND cluster_name=?")
+		if deletemastererr != nil {
+			log.Fatal(deletemastererr)
+		}
+		_, stmtexecerr := stmtdeletemaster.Exec(namespaces, cName)
+		if stmtexecerr != nil {
+			log.Fatal(stmtexecerr)
+		}
 	} else {
-		return "no slaves"
-	}
-}
-
-func updatehadoopinfo(namespaces, cName, containerId string) {
-	slaveList := getHadoopSlaveNodeId(namespaces, cName)
-	var slaveIds string
-	if len(slaveList) == 1 {
-		slaveIds = ""
-	} else if len(slaveList) > 1 {
-		for _, v := range slaveList {
-			if v != containerId {
-				slaveIds = fmt.Sprintf("%s@-@%s", slaveIds, v)
+		//update hadoop_slave_id, avaNumber, number_of_nodes in hadoop_cluster table
+		slaveList := getHadoopSlaveNodeId(namespaces, cName)
+		slaveIds := ""
+		if len(slaveList) > 1 {
+			for _, v := range slaveList {
+				if v != containerId {
+					slaveIds = fmt.Sprintf("%s@-@%s", slaveIds, v)
+				}
 			}
+			slaveIds = slaveIds[3:]
 		}
-	}
-	slaveIds = slaveIds[3:]
-	if dbHadoop == nil {
-		connectDBHadoop()
-	}
-
-	var avaNumber, number_of_nodes int
-	rows, _ := dbHadoop.Query(`SELECT available_number,number_of_nodes FROM hadoop_cluster WHERE namespace=? AND cluster_name=?`, namespaces, cName)
-	defer func() {
-		rows.Close()
-
-	}()
-	for rows.Next() {
-		if err := rows.Scan(&avaNumber, &number_of_nodes); err != nil {
+		stmt, err := dbHadoop.Prepare("UPDATE hadoop_cluster SET hadoop_slave_id = ?, number_of_nodes = number_of_nodes - 1, available_number = available_number - 1 WHERE namespace=? AND cluster_name=?")
+		if err != nil {
 			log.Fatal(err)
 		}
+		_, err = stmt.Exec(slaveIds, namespaces, cName)
 	}
-	avaNumber = avaNumber - 1
-	number_of_nodes = number_of_nodes - 1
-	stmt, err := dbHadoop.Prepare("UPDATE hadoop_cluster SET hadoop_slave_id = ?, available_number = ?, number_of_nodes = ? WHERE namespace=? AND cluster_name=?")
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, err = stmt.Exec(slaveIds, avaNumber, number_of_nodes, namespaces, cName)
 
+	return
 }
