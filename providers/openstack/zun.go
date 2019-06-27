@@ -143,6 +143,7 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 			if v.Name == "HADOOP" {
 				tempName := pod.Name
 				clusterName := tempName[0:strings.LastIndex(tempName[0:strings.LastIndex(tempName, "-")], "-")]
+				//clusterName = clusterName[0:strings.LastIndex(clusterName, "-")]
 				if !isExitHadoopCluster(pod.Namespace, clusterName) {
 					if numberOfNodes, err := strconv.Atoi(v.Value); err == nil {
 						initErr := initHadoopCluster(&HadoopCluster{
@@ -159,6 +160,7 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 							fmt.Println(initErr)
 						}
 					}
+
 				} else {
 					continue
 				}
@@ -242,7 +244,9 @@ func (p *ZunProvider) DeletePod(ctx context.Context, pod *v1.Pod) error {
 		if pod.Namespace != "" && pod.Name != "" {
 			tempName := pod.Name
 			clusterName := tempName[0:strings.LastIndex(tempName[0:strings.LastIndex(tempName, "-")], "-")]
-			deleteHadoopCluster(pod.Namespace, clusterName)
+			//clusterName = clusterName[0:strings.LastIndex(clusterName, "-")]
+			//deleteHadoopCluster(pod.Namespace, clusterName)
+			deletehadoopNode(pod.Namespace, clusterName, v)
 		}
 		return nil
 	}
@@ -260,7 +264,9 @@ func (p *ZunProvider) GetPod(ctx context.Context, namespace, name string) (*v1.P
 		}
 		zunPod := PodQuery(nn)
 		podinfo := zunPodToPodinfo(zunPod)
-		p.ContainerHadoopNodeFactory(container, namespace, name)
+		if _, ok := container.Environment["HADOOP"]; ok {
+			p.ContainerHadoopNodeFactory(container, namespace, name)
+		}
 		return containerToPod(container, podinfo)
 	}
 	return nil, nil

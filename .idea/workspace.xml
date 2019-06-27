@@ -1,9 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/providers/openstack/hadoop.go" line="362" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="6f0c2e9d-8b0d-455e-9376-04401af6dda9" name="Default Changelist" comment="virutal kubelet version 3.0 20190531&#10;1.Add hadoop cluster creat function and operation logic -&gt; hadoop.go&#10;2.Please note that to use this feature you need to set env in the kubernetes Deployment YAML file.&#10;  HADOOP=X (X is the number of nodes, one hadoop-master node, X-1 hadoop-slavei nodes [1&lt;=i&lt;=X])">
+    <list default="true" id="6f0c2e9d-8b0d-455e-9376-04401af6dda9" name="Default Changelist" comment="virutal kubelet version rui3.3 20190620 &#10;1. create master and slaves respectively.&#10;2. can delete salve dynamically.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/providers/openstack/hadoop.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/openstack/hadoop.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/providers/openstack/zun.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/openstack/zun.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/git.apache.org/thrift.git/tutorial/erl/server.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/docker/docker/hack/make/.build-deb/docker-engine.docker.default" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/docker/docker/hack/make/.build-deb/docker-engine.docker.init" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/docker/docker/hack/make/.build-deb/docker-engine.docker.upstart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/docker/docker/hack/make/.build-deb/docker-engine.udev" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/docker/docker/project/CONTRIBUTORS.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/vmware/vic/cmd/vicadmin/html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/.bazelrc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/.kazelcfg.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/BUILD.bazel" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/Makefile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/Makefile.generated_files" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/WORKSPACE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/cluster/gce/cos" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/cluster/gce/custom" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/cluster/gce/ubuntu" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/cluster/juju/layers/kubernetes-master/actions/namespace-delete" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/cluster/juju/layers/kubernetes-master/actions/namespace-list" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,25 +47,37 @@
     <expand />
     <select />
   </component>
+  <component name="FavoritesManager">
+    <favorites_list name="virtual-kubelet" />
+  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/providers/openstack/mysql_client.go">
+        <entry file="file://$PROJECT_DIR$/providers/openstack/hadoop.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="689">
-              <caret line="46" column="28" selection-start-line="46" selection-start-column="28" selection-end-line="46" selection-end-column="28" />
-              <folding>
-                <element signature="e#19#95#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="573">
+              <caret line="84" column="27" lean-forward="true" selection-start-line="84" selection-start-column="27" selection-end-line="84" selection-end-column="27" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/providers/openstack/hadoop.go">
+        <entry file="file://$PROJECT_DIR$/providers/openstack/zun.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="569">
-              <caret line="125" column="3" lean-forward="true" selection-start-line="125" selection-start-column="3" selection-end-line="125" selection-end-column="3" />
+            <state relative-caret-position="390">
+              <caret line="159" column="48" lean-forward="true" selection-start-line="159" selection-start-column="48" selection-end-line="159" selection-end-column="48" />
+              <folding>
+                <element signature="e#19#608#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../gophercloud/gophercloud/openstack/container/v1/container/types.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="462">
+              <caret line="21" column="4" selection-start-line="21" selection-start-column="4" selection-end-line="21" selection-end-column="4" />
             </state>
           </provider>
         </entry>
@@ -59,25 +93,12 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>dele</find>
-      <find>podstatus</find>
-      <find>get pod is fail,pod not found</find>
-      <find>error while updating pod status in kubernetes</find>
-      <find>GetPodStatus</find>
-      <find>status</find>
-      <find>container</find>
-      <find>PodStatus</find>
-      <find>podCreationTimestamp</find>
-      <find>containerstatus</find>
-      <find>podTemplate</find>
-      <find>error setting up http server</find>
       <find>GetIp</find>
       <find>getpod</find>
       <find>due to failed sync</find>
       <find>GetPod</find>
       <find>GetPods</find>
       <find>getpods</find>
-      <find>delete</find>
       <find>init</find>
       <find>test</find>
       <find>Pod Created</find>
@@ -89,7 +110,24 @@
       <find>cluster</find>
       <find>hadoop_cluster</find>
       <find>getHadoopNodeStatus</find>
+      <find>glance</find>
+      <find>WHERE namespace=</find>
+      <find>zun_container.Get(p.ZunClient,v.ContainerID).Extract()</find>
+      <find>executeErr is</find>
+      <find>Extract excuteResult err</find>
+      <find>status</find>
+      <find>Hadoop Cluster created</find>
+      <find>db.</find>
+      <find>Now()</find>
+      <find>clusterName := tempName</find>
+      <find>clusterName</find>
+      <find>delete</find>
+      <find>clusterName = clusterName[0:strings.LastIndex(clusterName, &quot;-&quot;)]</find>
     </findStrings>
+    <replaceStrings>
+      <replace>dbHadoop.</replace>
+      <replace>//clusterName = clusterName[0:strings.LastIndex(clusterName, &quot;-&quot;)]</replace>
+    </replaceStrings>
     <dirStrings>
       <dir>$PROJECT_DIR$/providers/openstack</dir>
       <dir>$PROJECT_DIR$</dir>
@@ -105,7 +143,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="development" />
       </map>
     </option>
   </component>
@@ -131,12 +169,12 @@
         <option value="$PROJECT_DIR$/vkubelet/podcontroller.go" />
         <option value="$PROJECT_DIR$/cmd/root.go" />
         <option value="$PROJECT_DIR$/providers/openstack/db_zun.go" />
-        <option value="$PROJECT_DIR$/providers/openstack/mysql_client.go" />
         <option value="$PROJECT_DIR$/vkubelet/apiserver.go" />
         <option value="$PROJECT_DIR$/providers/openstack/big_data_cluster/hadoop.go" />
         <option value="$PROJECT_DIR$/providers/openstack/types.go" />
-        <option value="$PROJECT_DIR$/providers/openstack/zun.go" />
+        <option value="$PROJECT_DIR$/providers/openstack/mysql_client.go" />
         <option value="$PROJECT_DIR$/providers/openstack/hadoop.go" />
+        <option value="$PROJECT_DIR$/providers/openstack/zun.go" />
       </list>
     </option>
   </component>
@@ -169,53 +207,7 @@
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
-    <panes>
-      <pane id="Scope" />
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="virtual-kubelet" type="b2602c69:ProjectViewProjectNode" />
-              <item name="virtual-kubelet" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="virtual-kubelet" type="b2602c69:ProjectViewProjectNode" />
-              <item name="virtual-kubelet" type="462c0819:PsiDirectoryNode" />
-              <item name="providers" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="virtual-kubelet" type="b2602c69:ProjectViewProjectNode" />
-              <item name="virtual-kubelet" type="462c0819:PsiDirectoryNode" />
-              <item name="providers" type="462c0819:PsiDirectoryNode" />
-              <item name="openstack" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="virtual-kubelet" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-            </path>
-            <path>
-              <item name="virtual-kubelet" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;virtual-kubelet&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
-            </path>
-            <path>
-              <item name="virtual-kubelet" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;virtual-kubelet&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="virtual-kubelet" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="GOPATH &lt;virtual-kubelet&gt;" type="20ee2d1f:SyntheticLibraryElementNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="github.com" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-    </panes>
+    <panes />
   </component>
   <component name="PropertiesComponent">
     <property name="DefaultGoTemplateProperty" value="Go File" />
@@ -229,9 +221,9 @@
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.vendoring.notification.had.been.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../gophercloud/gophercloud" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -301,13 +293,16 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Build.go build config.go" />
-        <item itemvalue="Go Build.go build provider_openstack.go" />
-        <item itemvalue="Go Build.go build main.go" />
         <item itemvalue="Go Test.provider_test.go" />
         <item itemvalue="Go Build.go build zun.go" />
+        <item itemvalue="Go Build.go build provider_openstack.go" />
+        <item itemvalue="Go Build.go build main.go" />
+        <item itemvalue="Go Build.go build config.go" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="StructureViewFactory">
+    <option name="AUTOSCROLL_FROM_SOURCE" value="true" />
   </component>
   <component name="TestHistory">
     <history-entry file="provider_test_go - 2018.12.12 at 10h 13m 36s.xml">
@@ -324,23 +319,23 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="1920" y="0" width="1920" height="1040" extended-state="0" />
+    <frame x="16" y="-8" width="1920" height="1040" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49779737" visible="true" weight="0.12460064" />
-      <window_info id="Structure" order="1" sideWeight="0.50220263" side_tool="true" weight="0.25559106" />
-      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49729145" weight="0.14536741" />
+      <window_info id="Structure" order="1" sideWeight="0.50270855" side_tool="true" weight="0.12992546" />
+      <window_info id="Favorites" order="2" sideWeight="0.502052" side_tool="true" weight="0.12992546" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info active="true" anchor="bottom" id="Find" order="1" sideWeight="0.4888179" visible="true" weight="0.14734562" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.47923324" visible="true" weight="0.13976164" />
+      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.4888179" weight="0.28710726" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.4877529" weight="0.43987" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.329718" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Terminal" order="9" sideWeight="0.49893504" weight="0.38678223" />
-      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5207668" side_tool="true" weight="0.1516793" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="9" sideWeight="0.49840257" visible="true" weight="0.33261105" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5122471" side_tool="true" weight="0.35969663" />
       <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" />
       <window_info active="true" anchor="bottom" id="Messages" order="12" sideWeight="0.49946752" visible="true" weight="0.32936078" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -358,51 +353,13 @@
     <MESSAGE value="virutal kubelet modified version 1.1 20190423" />
     <MESSAGE value="virutal kubelet version 2.0 20190527&#10;1.Add database(mysql) operation logic -&gt; mysql_client.go file&#10;2.Modified zun.go file,Replace static variable for database instantiation -&gt; zun.go&#10;3.Modified the bug that Deployment can't display Ready -&gt; zun.go(zunPodStateToPodConditions)" />
     <MESSAGE value="virutal kubelet version 3.0 20190531&#10;1.Add hadoop cluster creat function and operation logic -&gt; hadoop.go&#10;2.Please note that to use this feature you need to set env in the kubernetes Deployment YAML file.&#10;  HADOOP=X (X is the number of nodes, one hadoop-master node, X-1 hadoop-slavei nodes [1&lt;=i&lt;=X])" />
-    <option name="LAST_COMMIT_MESSAGE" value="virutal kubelet version 3.0 20190531&#10;1.Add hadoop cluster creat function and operation logic -&gt; hadoop.go&#10;2.Please note that to use this feature you need to set env in the kubernetes Deployment YAML file.&#10;  HADOOP=X (X is the number of nodes, one hadoop-master node, X-1 hadoop-slavei nodes [1&lt;=i&lt;=X])" />
+    <MESSAGE value="virutal kubelet version 3.1 20190604&#10;1.modified mysql db hadoop_cluster hadoop_slaves type varchar(100) to text -&gt; hadoop.go&#10;2.ContainerHadoopNodeFactory function fixed hosts config file rewrite bug.Add getHadoopNodeStatus judge." />
+    <MESSAGE value="virutal kubelet version rui3.2 20190612 &#10;1.using new hadoop mirror named hadoop2&#10;2.hadoop can add nodes while cluster is running. -&gt; hadoop.go" />
+    <MESSAGE value="virutal kubelet version rui3.3 20190619 &#10;change database connect function" />
+    <MESSAGE value="virutal kubelet version rui3.3 20190620 &#10;1. create master and slaves respectively.&#10;2. can delete salve dynamically." />
+    <option name="LAST_COMMIT_MESSAGE" value="virutal kubelet version rui3.3 20190620 &#10;1. create master and slaves respectively.&#10;2. can delete salve dynamically." />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/providers/aws/fargate/pod.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-199">
-          <caret line="321" column="27" lean-forward="true" selection-start-line="321" selection-start-column="27" selection-end-line="321" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/providers/aws/provider_test.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="631">
-          <caret line="334" column="40" selection-start-line="334" selection-start-column="40" selection-end-line="334" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/vendor/k8s.io/apimachinery/pkg/types/uid.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="399">
-          <caret line="21" column="5" selection-start-line="21" selection-start-column="5" selection-end-line="21" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/providers/aws/fargate/cluster.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="305">
-          <caret line="268" column="18" selection-start-line="268" selection-start-column="18" selection-end-line="268" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/vendor/github.com/BurntSushi/toml/decode.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="230">
-          <caret line="137" column="5" selection-start-line="137" selection-start-column="5" selection-end-line="137" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/providers/register/register.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="160">
-          <caret line="18" column="44" lean-forward="true" selection-start-line="18" selection-start-column="44" selection-end-line="18" selection-end-column="44" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../gophercloud/gophercloud/results.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="247">
@@ -624,13 +581,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../gophercloud/gophercloud/openstack/container/v1/container/types.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="287">
-          <caret line="205" column="4" selection-start-line="205" selection-start-column="4" selection-end-line="205" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/local/go/src/time/format.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="9614">
@@ -683,37 +633,73 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../gophercloud/gophercloud/openstack/container/v1/container/requests.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="362">
-          <caret line="73" column="47" selection-start-line="73" selection-start-column="40" selection-end-line="73" selection-end-column="47" />
+    <entry file="file://$PROJECT_DIR$/cmd/census_ocagent.go">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Dockerfile">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.go">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor />
+          <second_editor />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/providers/openstack/zun.go">
+    <entry file="file:///usr/local/go/src/time/time.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="38">
-          <caret line="231" lean-forward="true" selection-start-line="231" selection-end-line="231" />
-          <folding>
-            <element signature="e#19#608#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="282">
+          <caret line="1053" column="5" selection-start-line="1053" selection-start-column="5" selection-end-line="1053" selection-end-column="5" />
         </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Makefile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-858" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/providers/openstack/mysql_client.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="689">
-          <caret line="46" column="28" selection-start-line="46" selection-start-column="28" selection-end-line="46" selection-end-column="28" />
+        <state relative-caret-position="586">
+          <caret line="74" column="33" lean-forward="true" selection-start-line="74" selection-start-column="33" selection-end-line="74" selection-end-column="33" />
           <folding>
             <element signature="e#19#95#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../../gophercloud/gophercloud/openstack/container/v1/container/requests.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="391">
+          <caret line="172" column="5" selection-start-line="172" selection-start-column="5" selection-end-line="172" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/providers/openstack/hadoop.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="569">
-          <caret line="125" column="3" lean-forward="true" selection-start-line="125" selection-start-column="3" selection-end-line="125" selection-end-column="3" />
+        <state relative-caret-position="573">
+          <caret line="84" column="27" lean-forward="true" selection-start-line="84" selection-start-column="27" selection-end-line="84" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../gophercloud/gophercloud/openstack/container/v1/container/types.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="462">
+          <caret line="21" column="4" selection-start-line="21" selection-start-column="4" selection-end-line="21" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/providers/openstack/zun.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="159" column="48" lean-forward="true" selection-start-line="159" selection-start-column="48" selection-end-line="159" selection-end-column="48" />
+          <folding>
+            <element signature="e#19#608#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
