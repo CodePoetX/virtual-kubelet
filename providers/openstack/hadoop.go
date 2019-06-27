@@ -242,11 +242,12 @@ func (p *ZunProvider) ContainerHadoopNodeFactory(c *zun_container.Container, nam
 	if c.Status == "Created" {
 		tempName := name
 		clusterName := tempName[0:strings.LastIndex(tempName[0:strings.LastIndex(tempName, "-")], "-")]
-		clusterName = clusterName[0:strings.LastIndex(clusterName, "-")]
+		//clusterName = clusterName[0:strings.LastIndex(clusterName, "-")]
 		if getHadoopNodeStatus(c.UUID) == "Created" {
 			return
 		}
-		if masterId := getHadoopMasterNodeId(namespace, clusterName); masterId == "" && strings.Index(name, "master") != -1 {
+		if masterId := getHadoopMasterNodeId(namespace, clusterName); masterId == "" {
+			//&& strings.Index(name, "master") != -1
 			hadoopNode := &HadoopNode{
 				namespaces:  namespace,
 				name:        name,
@@ -278,7 +279,7 @@ func (p *ZunProvider) ContainerHadoopNodeFactory(c *zun_container.Container, nam
 		} else {
 			tempName := name
 			clusterName := tempName[0:strings.LastIndex(tempName[0:strings.LastIndex(tempName, "-")], "-")]
-			clusterName = clusterName[0:strings.LastIndex(clusterName, "-")]
+			//clusterName = clusterName[0:strings.LastIndex(clusterName, "-")]
 			updateHadoopNodeStatusToRunning(c.UUID)
 			updatehadoopClusterAvailableNumber(namespace, clusterName)
 			numberOfNode := getNumberOfNodesbyNnameCname(namespace, clusterName)
