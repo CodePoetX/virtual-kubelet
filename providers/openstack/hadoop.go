@@ -51,17 +51,7 @@ func connectDBHadoop() {
 	dbHadoop.SetMaxIdleConns(50)
 	dbHadoop.Ping()
 }
-func getHadoopMysqlClient() *sql.DB {
-	mysqlClient, err := sql.Open("mysql", "root:fudan_Nisl2019@@tcp(10.10.87.62:3306)/hadoop?charset=utf8")
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = mysqlClient.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return mysqlClient
-}
+
 
 func initHadoopCluster(cluster *HadoopCluster) error {
 	mutex.Lock()
@@ -236,7 +226,7 @@ func isExitHadoopCluster(namespaces, cName string) (flag bool) {
 	return rows.Next()
 }
 
-func (p *ZunProvider) ContainerHadoopNodeFactory(c *zun_container.Container, namespace, name string) {
+func (p *ZunProvider) ContainerHadoopNodeFactory(c *zun_container.Container, namespace, name, clusterType string) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	if c.Status == "Created" {
@@ -286,7 +276,7 @@ func (p *ZunProvider) ContainerHadoopNodeFactory(c *zun_container.Container, nam
 			AvailableNumber := getHadoopClusterAvailableNumber(namespace, clusterName)
 			if numberOfNode == AvailableNumber {
 				updatehadoopClusterCreateStatus(namespace, clusterName, "Creating")
-				p.ConfigAndStartContainerHadoopCluster(namespace, clusterName, c.UUID)
+				p.ConfigAndStartContainerHadoopCluster(namespace, clusterName, c.UUID, clusterType)
 			} else if numberOfNode < AvailableNumber {
 				p.addnodetocluster(namespace, clusterName, c.UUID)
 			}
@@ -294,7 +284,7 @@ func (p *ZunProvider) ContainerHadoopNodeFactory(c *zun_container.Container, nam
 	}
 }
 
-func (p *ZunProvider) ConfigAndStartContainerHadoopCluster(namespace, cName, container_id string) {
+func (p *ZunProvider) ConfigAndStartContainerHadoopCluster(namespace, cName, container_id, clusterType string) {
 	hadoopMasterId := getHadoopMasterNodeId(namespace, cName)
 	hadoopSlaveIdList := getHadoopSlaveNodeId(namespace, cName)
 	HostsStr, slavesStr := getFinallyHostsConfigAndSlavesConfig(namespace, cName)
@@ -302,11 +292,11 @@ func (p *ZunProvider) ConfigAndStartContainerHadoopCluster(namespace, cName, con
 	for _, v := range hadoopSlaveIdList {
 		p.WriteHadoopConfigFile(v, HostsStr, slavesStr)
 	}
-	p.StartContainerHadoopCluster(hadoopMasterId)
+	p.StartContainerHadoopCluster(hadoopMasterId,clusterType)
 	updatehadoopClusterCreateStatus(namespace, cName, "Running")
 }
 
-func (p *ZunProvider) StartContainerHadoopCluster(containerId string) {
+func (p *ZunProvider) StartContainerHadoopCluster(containerId, clusterType string) {
 	formatHdfsStr := fmt.Sprintf("hadoop namenode -format")
 	formatHdfsCommand := zun_container.ExcuteOpts{
 		//Command:"cat << EOF >   /etc/hosts  \n [global] \n EOF",
@@ -314,9 +304,9 @@ func (p *ZunProvider) StartContainerHadoopCluster(containerId string) {
 		Run:         false,
 		Interacitve: false,
 	}
-	_, err := zun_container.Exexcute(p.ZunClient, containerId, formatHdfsCommand).Extract()
-	if err != nil {
-		fmt.Printf("executeErr is %v\n", err)
+	formatHdfsResult, _ := zun_container.Exexcute(p.ZunClient, containerId, formatHdfsCommand).Extract()
+	if formatHdfsResult.ExitCode !=0  {
+		fmt.Println(formatHdfsResult.Output)
 	}
 
 	startHadoopClusterStr := fmt.Sprintf("/usr/local/hadoop/sbin/start-all.sh")
@@ -326,11 +316,35 @@ func (p *ZunProvider) StartContainerHadoopCluster(containerId string) {
 		Run:         false,
 		Interacitve: false,
 	}
-	_, _ = zun_container.Exexcute(p.ZunClient, containerId, startHadoopClusterCommand).Extract()
-	//if err != nil {
-	//	fmt.Printf("executeErr is %v\n", err)
-	//}
-	fmt.Println("Hadoop Cluster created is success")
+	startHadoopClusterResult, _ := zun_container.Exexcute(p.ZunClient, containerId, startHadoopClusterCommand).Extract()
+	if startHadoopClusterResult.ExitCode !=0{
+		fmt.Println(startHadoopClusterResult.Output)
+	}
+	if clusterType == "HADOOP"{
+		fmt.Println("Hadoop Cluster created is success")
+	}else if clusterType == "SPARK"{
+		/*copySparkSlavesStr := fmt.Sprintf("cp /usr/local/hadoop/etc/hadoop/slaves  /usr/local/spark/conf/slaves ")
+		copySparkSlavesCommand := zun_container.ExcuteOpts{
+			//Command:"cat << EOF >   /etc/hosts  \n [global] \n EOF",
+			Command:     copySparkSlavesStr,
+			Run:         false,
+			Interacitve: false,
+		}
+		copySparkSlavesResult, copySparkSlavesErr := zun_container.Exexcute(p.ZunClient, containerId, copySparkSlavesCommand).Extract()
+		fmt.Printf("copySparkSlavesResult is %s\n",copySparkSlavesResult)
+		fmt.Printf("copySparkSlavesErr is %s\n",copySparkSlavesErr)*/
+		startSparkClusterStr := fmt.Sprintf("/usr/local/spark/conf/startSpark.sh")
+		startSparkClusterCommand := zun_container.ExcuteOpts{
+			//Command:"cat << EOF >   /etc/hosts  \n [global] \n EOF",
+			Command:     startSparkClusterStr,
+			Run:         false,
+			Interacitve: false,
+		}
+		startSparkClusterResult, startSparkClusterErr := zun_container.Exexcute(p.ZunClient, containerId, startSparkClusterCommand).Extract()
+		fmt.Printf("startSparkClusterResult is %s\n",startSparkClusterResult)
+		fmt.Printf("startSparkClusterErr is %s\n",startSparkClusterErr)
+
+	}
 }
 
 func (p *ZunProvider) addnodetocluster(namespace, cName, containerId string) {
@@ -460,9 +474,6 @@ func addHadoopNode(node *HadoopNode) error {
 	if dbHadoop == nil {
 		connectDBHadoop()
 	}
-	defer func() {
-
-	}()
 	if isExitHadoopNode(node.containerId) {
 		return nil
 	}

@@ -140,7 +140,7 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 		env := make(map[string]string, len(container.Env))
 		for _, v := range container.Env {
 			env[v.Name] = v.Value
-			if v.Name == "HADOOP" {
+			if v.Name == "HADOOP" || v.Name == "SPARK" {
 				tempName := pod.Name
 				clusterName := tempName[0:strings.LastIndex(tempName[0:strings.LastIndex(tempName, "-")], "-")]
 				//clusterName = clusterName[0:strings.LastIndex(clusterName, "-")]
@@ -265,7 +265,9 @@ func (p *ZunProvider) GetPod(ctx context.Context, namespace, name string) (*v1.P
 		zunPod := PodQuery(nn)
 		podinfo := zunPodToPodinfo(zunPod)
 		if _, ok := container.Environment["HADOOP"]; ok {
-			p.ContainerHadoopNodeFactory(container, namespace, name)
+			p.ContainerHadoopNodeFactory(container, namespace, name,"HADOOP")
+		}else if _, ok := container.Environment["SPARK"]; ok {
+			p.ContainerHadoopNodeFactory(container, namespace, name,"SPARK")
 		}
 		return containerToPod(container, podinfo)
 	}

@@ -6,7 +6,17 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 )
-
+var dbvirtual_kubelet *sql.DB
+func connectDBvirtualkubelet() {
+	var err error
+	dbvirtual_kubelet, err = sql.Open("mysql", "root:fudan_Nisl2019@@tcp(10.10.87.62:3306)/virtual_kubelet?charset=utf8")
+	if err != nil {
+		log.Fatal(err)
+	}
+	dbvirtual_kubelet.SetMaxOpenConns(100)
+	dbvirtual_kubelet.SetMaxIdleConns(50)
+	dbvirtual_kubelet.Ping()
+}
 func getMysqlClient() *sql.DB {
 	mysqlClient, err := sql.Open("mysql", "root:fudan_Nisl2019@@tcp(10.10.87.62:3306)/virtual_kubelet?charset=utf8")
 	if err != nil {
@@ -21,11 +31,10 @@ func getMysqlClient() *sql.DB {
 
 //create pod and save pod key info to mysql db
 func PodCreate(pod *ZunPod) (err error) {
-	db := getMysqlClient()
-	defer func() {
-		db.Close()
-	}()
-	_, err = db.Exec(
+	if dbvirtual_kubelet == nil {
+		connectDBvirtualkubelet()
+	}
+	_, err = dbvirtual_kubelet.Exec(
 		"INSERT INTO Pod (NameSpace,Name,Namespace_Name,container_id,pod_kind,pod_uid,pod_createtime,pod_clustername,node_name) VALUES (?, ? , ?, ?, ?, ?, ?, ?, ?)",
 		pod.NameSpace,
 		pod.Name,
@@ -45,11 +54,13 @@ func PodCreate(pod *ZunPod) (err error) {
 
 //delete pod by namespaces-name
 func PodDelete(nsn string) {
-	db := getMysqlClient()
-	stmt, _ := db.Prepare(`DELETE FROM Pod WHERE Namespace_Name=?`)
+	if dbvirtual_kubelet == nil {
+		connectDBvirtualkubelet()
+	}
+	stmt, _ := dbvirtual_kubelet.Prepare(`DELETE FROM Pod WHERE Namespace_Name=?`)
 	defer func() {
 		stmt.Close()
-		db.Close()
+		 
 	}()
 	res, _ := stmt.Exec(nsn)
 	_, _ = res.RowsAffected()
@@ -58,11 +69,13 @@ func PodDelete(nsn string) {
 //query pod info by namespaces-name
 func PodQuery(nsn string) *ZunPod {
 	pod := new(ZunPod)
-	db := getMysqlClient()
-	rows, _ := db.Query(`SELECT NameSpace,Name,Namespace_Name,container_id,pod_kind,pod_uid,pod_createtime,pod_clustername,node_name FROM Pod WHERE Namespace_Name=?`, nsn)
+	if dbvirtual_kubelet == nil {
+		connectDBvirtualkubelet()
+	}
+	rows, _ := dbvirtual_kubelet.Query(`SELECT NameSpace,Name,Namespace_Name,container_id,pod_kind,pod_uid,pod_createtime,pod_clustername,node_name FROM Pod WHERE Namespace_Name=?`, nsn)
 	defer func() {
 		rows.Close()
-		db.Close()
+		 
 	}()
 	for rows.Next() {
 		var NameSpace string
@@ -92,11 +105,13 @@ func PodQuery(nsn string) *ZunPod {
 
 // query container id by namespaces-name
 func ContainerIdQuery(nsn string) (containerid string) {
-	db := getMysqlClient()
-	rows, _ := db.Query(`SELECT container_id FROM Pod WHERE Namespace_Name=?`, nsn)
+	if dbvirtual_kubelet == nil {
+		connectDBvirtualkubelet()
+	}
+	rows, _ := dbvirtual_kubelet.Query(`SELECT container_id FROM Pod WHERE Namespace_Name=?`, nsn)
 	defer func() {
 		rows.Close()
-		db.Close()
+		 
 	}()
 	for rows.Next() {
 		var containerId string
@@ -110,11 +125,13 @@ func ContainerIdQuery(nsn string) (containerid string) {
 
 //query pod info by container id
 func PodQueryByContainerId(containerid string) *ZunPod {
-	db := getMysqlClient()
-	rows, _ := db.Query(`SELECT NameSpace,Name,Namespace_Name,container_id,pod_kind,pod_uid,pod_createtime,pod_clustername,node_name FROM Pod WHERE container_id=?`, containerid)
+	if dbvirtual_kubelet == nil {
+		connectDBvirtualkubelet()
+	}
+	rows, _ := dbvirtual_kubelet.Query(`SELECT NameSpace,Name,Namespace_Name,container_id,pod_kind,pod_uid,pod_createtime,pod_clustername,node_name FROM Pod WHERE container_id=?`, containerid)
 	defer func() {
 		rows.Close()
-		db.Close()
+		 
 	}()
 	for rows.Next() {
 		pod := new(ZunPod)
