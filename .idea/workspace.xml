@@ -9,7 +9,6 @@
       <change beforePath="$PROJECT_DIR$/providers/openstack/hadoop.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/openstack/hadoop.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/providers/openstack/mysql_client.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/openstack/mysql_client.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/providers/openstack/zun.go" beforeDir="false" afterPath="$PROJECT_DIR$/providers/openstack/zun.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vkubelet/node.go" beforeDir="false" afterPath="$PROJECT_DIR$/vkubelet/node.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -36,40 +35,34 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/providers/openstack/zun.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="484">
+              <caret line="145" column="52" lean-forward="true" selection-start-line="145" selection-start-column="52" selection-end-line="145" selection-end-column="52" />
+              <folding>
+                <element signature="e#19#608#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/providers/openstack/hadoop.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="12694">
-              <caret line="586" column="19" selection-start-line="586" selection-start-column="19" selection-end-line="586" selection-end-column="19" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/vkubelet/node.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="405">
-              <caret line="50" column="5" selection-start-line="50" selection-start-column="5" selection-end-line="50" selection-end-column="5" />
+            <state relative-caret-position="1474">
+              <caret line="91" column="27" selection-start-line="91" selection-start-column="24" selection-end-line="91" selection-end-column="27" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../gophercloud/gophercloud/openstack/container/v1/container/requests.go">
+        <entry file="file://$PROJECT_DIR$/providers/openstack/mysql_client.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3696">
-              <caret line="172" column="5" selection-start-line="172" selection-start-column="5" selection-end-line="172" selection-end-column="5" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/providers/openstack/config.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="264">
-              <caret line="18" column="26" selection-start-line="18" selection-start-column="26" selection-end-line="18" selection-end-column="26" />
+            <state relative-caret-position="2112">
+              <caret line="96" column="5" selection-start-line="96" selection-start-column="5" selection-end-line="96" selection-end-column="5" />
               <folding>
-                <element signature="e#19#139#0" expanded="true" />
+                <element signature="e#19#95#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -86,11 +79,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>Pod Created</find>
-      <find>Update Hadoop</find>
-      <find>updatehadoopClusterCreateStatus</find>
-      <find>containerh</find>
-      <find>hadoop</find>
       <find>fac</find>
       <find>cluster</find>
       <find>hadoop_cluster</find>
@@ -116,6 +104,11 @@
       <find>dbvirtual_kubelet.Close()</find>
       <find>1.15.0</find>
       <find>due to failed sync</find>
+      <find>pre</find>
+      <find>64Gi</find>
+      <find>loadConfig</find>
+      <find>p0ad</find>
+      <find>load</find>
     </findStrings>
     <replaceStrings>
       <replace>dbHadoop.</replace>
@@ -167,14 +160,16 @@
         <option value="$PROJECT_DIR$/vkubelet/apiserver.go" />
         <option value="$PROJECT_DIR$/providers/openstack/big_data_cluster/hadoop.go" />
         <option value="$PROJECT_DIR$/providers/openstack/types.go" />
-        <option value="$PROJECT_DIR$/providers/openstack/zun.go" />
         <option value="$PROJECT_DIR$/vkubelet/node.go" />
         <option value="$PROJECT_DIR$/providers/openstack/mysql_client.go" />
         <option value="$PROJECT_DIR$/providers/openstack/hadoop.go" />
+        <option value="$PROJECT_DIR$/providers/openstack/zun.go" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
+    <option name="x" value="8" />
+    <option name="y" value="8" />
     <option name="width" value="1920" />
     <option name="height" value="1040" />
   </component>
@@ -203,6 +198,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -219,13 +215,18 @@
               <item name="virtual-kubelet" type="b2602c69:ProjectViewProjectNode" />
               <item name="virtual-kubelet" type="462c0819:PsiDirectoryNode" />
               <item name="providers" type="462c0819:PsiDirectoryNode" />
+              <item name="huawei" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="virtual-kubelet" type="b2602c69:ProjectViewProjectNode" />
+              <item name="virtual-kubelet" type="462c0819:PsiDirectoryNode" />
+              <item name="providers" type="462c0819:PsiDirectoryNode" />
               <item name="openstack" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -240,7 +241,7 @@
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.vendoring.notification.had.been.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../gophercloud/gophercloud" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
   </component>
@@ -338,21 +339,22 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1920" height="1040" extended-state="0" />
+    <frame x="8" y="8" width="1920" height="1040" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49729145" visible="true" weight="0.16613418" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49729145" visible="true" weight="0.18903089" />
       <window_info id="Structure" order="1" sideWeight="0.50270855" side_tool="true" weight="0.12992546" />
       <window_info id="Favorites" order="2" sideWeight="0.502052" side_tool="true" weight="0.12992546" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.4888179" visible="true" weight="0.28710726" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.4877529" weight="0.43987" />
+      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.4888179" weight="0.28710726" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.4877529" weight="0.1787649" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.329718" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Terminal" order="9" sideWeight="0.49840257" weight="0.32719395" />
+      <window_info anchor="bottom" id="Terminal" order="9" sideWeight="0.49840257" weight="0.32683983" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5122471" side_tool="true" weight="0.35969663" />
       <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" />
       <window_info active="true" anchor="bottom" id="Messages" order="12" sideWeight="0.49946752" visible="true" weight="0.32936078" />
@@ -380,13 +382,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="virutal kubelet version3.5 rui_dev 20190628&#10;Change database connection to a pool in mysql_client.go(Hadoop.go has changed earlier)" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/providers/vic/operations/pod_deleter.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="247">
-          <caret line="91" column="30" selection-start-line="91" selection-start-column="30" selection-end-line="91" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/log/log.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="550">
@@ -460,13 +455,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/providers/aws/provider.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="232">
-          <caret line="52" column="71" selection-start-line="52" selection-start-column="63" selection-end-line="52" selection-end-column="71" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/providers/alicloud/eci/create_container_group.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="273">
@@ -492,13 +480,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/providers/openstack/db_zun.go" />
-    <entry file="file://$PROJECT_DIR$/providers/provider.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="35" column="4" selection-start-line="35" selection-start-column="4" selection-end-line="35" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/providers/alicloud/eci.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-2024">
@@ -612,13 +593,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/vkubelet/pod.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="979">
-          <caret line="73" column="30" lean-forward="true" selection-start-line="73" selection-start-column="30" selection-end-line="73" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/vkubelet/podcontroller.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="693">
@@ -661,16 +635,6 @@
     <entry file="file://$PROJECT_DIR$/.goreleaser.yml">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/providers/openstack/zun.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5412">
-          <caret line="266" selection-start-line="266" selection-end-line="266" />
-          <folding>
-            <element signature="e#19#608#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../gophercloud/gophercloud/openstack/container/v1/container/types.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2354">
@@ -678,44 +642,82 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/providers/openstack/mysql_client.go">
+    <entry file="file://$PROJECT_DIR$/vkubelet/node.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="553">
-          <caret line="153" column="29" lean-forward="true" selection-start-line="153" selection-start-column="29" selection-end-line="153" selection-end-column="29" />
-          <folding>
-            <element signature="e#19#95#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/providers/openstack/hadoop.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="12694">
-          <caret line="586" column="19" selection-start-line="586" selection-start-column="19" selection-end-line="586" selection-end-column="19" />
+        <state relative-caret-position="1122">
+          <caret line="60" column="14" selection-start-line="60" selection-start-column="14" selection-end-line="60" selection-end-column="14" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/../../gophercloud/gophercloud/openstack/container/v1/container/requests.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3696">
-          <caret line="172" column="5" selection-start-line="172" selection-start-column="5" selection-end-line="172" selection-end-column="5" />
+        <state relative-caret-position="299">
+          <caret line="113" column="5" selection-start-line="113" selection-start-column="5" selection-end-line="113" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vkubelet/pod.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="792">
+          <caret line="50" column="29" selection-start-line="50" selection-start-column="29" selection-end-line="50" selection-end-column="29" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/providers/openstack/config.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="264">
-          <caret line="18" column="26" selection-start-line="18" selection-start-column="26" selection-end-line="18" selection-end-column="26" />
+        <state relative-caret-position="198">
+          <caret line="18" column="32" selection-start-line="18" selection-start-column="22" selection-end-line="18" selection-end-column="32" />
           <folding>
             <element signature="e#19#139#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/vkubelet/node.go">
+    <entry file="file://$PROJECT_DIR$/providers/provider.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="50" column="5" selection-start-line="50" selection-start-column="5" selection-end-line="50" selection-end-column="5" />
+        <state relative-caret-position="220">
+          <caret line="19" column="13" selection-start-line="19" selection-start-column="4" selection-end-line="19" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/providers/aws/provider.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="827">
+          <caret line="76" column="13" selection-start-line="76" selection-start-column="13" selection-end-line="76" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/providers/huawei/cci.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="62">
+          <caret line="63" column="19" selection-start-line="63" selection-start-column="5" selection-end-line="63" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/providers/openstack/hadoop.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1474">
+          <caret line="91" column="27" selection-start-line="91" selection-start-column="24" selection-end-line="91" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/providers/openstack/mysql_client.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2112">
+          <caret line="96" column="5" selection-start-line="96" selection-start-column="5" selection-end-line="96" selection-end-column="5" />
+          <folding>
+            <element signature="e#19#95#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/providers/openstack/zun.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="484">
+          <caret line="145" column="52" lean-forward="true" selection-start-line="145" selection-start-column="52" selection-end-line="145" selection-end-column="52" />
+          <folding>
+            <element signature="e#19#608#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

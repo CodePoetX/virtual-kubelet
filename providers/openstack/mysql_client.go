@@ -9,7 +9,7 @@ import (
 var dbvirtual_kubelet *sql.DB
 func connectDBvirtualkubelet() {
 	var err error
-	dbvirtual_kubelet, err = sql.Open("mysql", "root:fudan_Nisl2019@@tcp(10.10.87.62:3306)/virtual_kubelet?charset=utf8")
+	dbvirtual_kubelet, err = sql.Open("mysql", "root:stackdatabase@tcp(10.10.87.60:3306)/virtual_kubelet?charset=utf8")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -17,17 +17,7 @@ func connectDBvirtualkubelet() {
 	dbvirtual_kubelet.SetMaxIdleConns(50)
 	dbvirtual_kubelet.Ping()
 }
-func getMysqlClient() *sql.DB {
-	mysqlClient, err := sql.Open("mysql", "root:fudan_Nisl2019@@tcp(10.10.87.62:3306)/virtual_kubelet?charset=utf8")
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = mysqlClient.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return mysqlClient
-}
+
 
 //create pod and save pod key info to mysql db
 func PodCreate(pod *ZunPod) (err error) {

@@ -43,7 +43,7 @@ var dbHadoop *sql.DB
 
 func connectDBHadoop() {
 	var err error
-	dbHadoop, err = sql.Open("mysql", "root:fudan_Nisl2019@@tcp(10.10.87.62:3306)/hadoop?charset=utf8")
+	dbHadoop, err = sql.Open("mysql", "root:stackdatabase@tcp(10.10.87.60:3306)/hadoop?charset=utf8")
 	if err != nil {
 		log.Fatal(err)
 	}

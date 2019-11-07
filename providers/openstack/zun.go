@@ -77,7 +77,7 @@ func NewZunProvider(config string, rm *manager.ResourceManager, nodeName string,
 	p.operatingSystem = operatingSystem
 	p.nodeName = nodeName
 	p.daemonEndpointPort = daemonEndpointPort
-	p.ZunClient.Microversion = "1.9"
+	p.ZunClient.Microversion = "1.21"
 	return &p, err
 }
 
@@ -133,8 +133,18 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 		createOpts.Image = container.Image
 		createOpts.ImageDriver = "glance"
 
+		// open container console in zun-ui
 		isInteractive := true
 		createOpts.Interactive = &isInteractive
+
+		// show numa info
+		createOpts.CpuPolicy = "dedicated"
+
+		//isprivileged := true
+		//createOpts.Privileged = &isprivileged
+
+		// Specify the node created by the container
+		createOpts.Host = "controller"
 
 		//get pod env
 		env := make(map[string]string, len(container.Env))
