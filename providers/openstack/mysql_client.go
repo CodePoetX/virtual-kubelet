@@ -5,11 +5,15 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"os"
 )
 var dbvirtual_kubelet *sql.DB
 func connectDBvirtualkubelet() {
 	var err error
-	dbvirtual_kubelet, err = sql.Open("mysql", "root:stackdatabase@tcp(10.10.87.60:3306)/virtual_kubelet?charset=utf8")
+	username := os.Getenv("database_username")
+	password := os.Getenv("database_password")
+	database_ip := os.Getenv("database_ip")
+	dbvirtual_kubelet, err = sql.Open("mysql",username+":"+password+"@tcp("+database_ip+ ":3306)/virtual_kubelet?charset=utf8")
 	if err != nil {
 		log.Fatal(err)
 	}

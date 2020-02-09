@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"os"
 )
 
 type hosts struct {
@@ -43,7 +44,10 @@ var dbHadoop *sql.DB
 
 func connectDBHadoop() {
 	var err error
-	dbHadoop, err = sql.Open("mysql", "root:stackdatabase@tcp(10.10.87.60:3306)/hadoop?charset=utf8")
+	username := os.Getenv("database_username")
+	password := os.Getenv("database_password")
+	database_ip := os.Getenv("database_ip")
+	dbHadoop, err = sql.Open("mysql", username+":"+password+"@tcp("+database_ip+":3306)/hadoop?charset=utf8")
 	if err != nil {
 		log.Fatal(err)
 	}

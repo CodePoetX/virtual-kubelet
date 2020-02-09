@@ -138,13 +138,13 @@ func CreateZunContainerOpts(pod *v1.Pod) (createOpts zun_container.CreateOpts, e
 		createOpts.Interactive = &isInteractive
 
 		// show numa info
-		createOpts.CpuPolicy = "dedicated"
+		createOpts.CpuPolicy = "shared"
 
 		//isprivileged := true
 		//createOpts.Privileged = &isprivileged
 
 		// Specify the node created by the container
-		createOpts.Host = "controller"
+		createOpts.Host = "compute1"
 
 		//get pod env
 		env := make(map[string]string, len(container.Env))
